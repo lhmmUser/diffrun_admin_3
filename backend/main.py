@@ -398,6 +398,7 @@ def clerk_signin():
 """
 
 
+
 # Redirect after successful sign-in
 @app.get("/auth/callback", response_class=HTMLResponse)
 def auth_callback():
