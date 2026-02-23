@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter(); // Access the Next.js router
 
   useEffect(() => {
-  fetch("https://admin.diffrun.com/auth/me", {
+  fetch("/auth/me", {
     credentials: "include"
   })
     .then(res => {
@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     })
     .then(() => setAuthorized(true))
     .catch(() => {
-      window.location.href = "https://admin.diffrun.com/sign-in"
+      window.location.href = "/sign-in"
     })
 }, [])
 
