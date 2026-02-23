@@ -10,7 +10,7 @@ const LandingPage = () => {
   useEffect(() => {
     // Check if the user is authenticated by making a request to the backend
     const checkAuth = async () => {
-      const response = await fetch('https://697e-14-142-182-243.ngrok-free.app/auth/me', {
+      const response = await fetch('https://admin.diffrun.com/auth/me', {
         credentials: 'include'
       });
 
@@ -25,7 +25,7 @@ const LandingPage = () => {
 
   const handleSignInClick = () => {
     // Redirect to the backend sign-in route
-    router.push('https://697e-14-142-182-243.ngrok-free.app/sign-in');
+    router.push('https://admin.diffrun.com/sign-in');
   };
 
   return (

@@ -50,7 +50,7 @@ const COUNTRY_OPTIONS: { label: string; value: CountryCode }[] = [
 ];
 
 export default function Home() {
-  const baseUrl = "https://697e-14-142-182-243.ngrok-free.app";
+  const baseUrl = "https://admin.diffrun.com";
 
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [error, setError] = useState<string>("");
@@ -137,7 +137,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `https://697e-14-142-182-243.ngrok-free.app/stats/orders?${params.toString()}`;
+    return `https://admin.diffrun.com/stats/orders?${params.toString()}`;
   };
 
   const buildJobsUrl = (r: RangeKey) => {
@@ -171,7 +171,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `https://697e-14-142-182-243.ngrok-free.app/stats/revenue?${params.toString()}`;
+    return `https://admin.diffrun.com/stats/revenue?${params.toString()}`;
   };
 
 
