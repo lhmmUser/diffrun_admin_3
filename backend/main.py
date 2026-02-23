@@ -1830,7 +1830,7 @@ def _fetch_revenue_per_bucket(
     return {r["_id"]: float(r["revenue"]) for r in rows}
 
 
-@app.get("/stats/orders")
+@app.get("/api/stats/orders")
 def stats_orders(
     range: RangeKey = Query(
         "1w", description="1d | 1w | 1m | 6m | this_month"),
