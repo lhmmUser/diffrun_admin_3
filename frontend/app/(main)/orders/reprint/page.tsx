@@ -656,7 +656,7 @@ export default function ReprintPage() {
   useEffect(() => {
   const fetchAdmin = async () => {
     try {
-      const res = await fetch("/auth/me", {
+      const res = await fetch("/api/auth/me", {
         credentials: "include",
       });
 

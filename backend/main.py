@@ -358,7 +358,7 @@ def sync_user(claims=Depends(require_auth)):
 # Route for the sign-in page (static)
 print("CLERK_PUBLISHABLE_KEY =", CLERK_PUBLISHABLE_KEY)
 
-@app.get("/sign-in", response_class=HTMLResponse)
+@app.get("/api/sign-in", response_class=HTMLResponse)
 def clerk_signin():
     return f"""
 <!DOCTYPE html>
@@ -387,8 +387,8 @@ def clerk_signin():
       const root = document.getElementById("clerk-root");
 
       Clerk.mountSignIn(root, {{
-        afterSignInUrl: window.location.origin + "/auth/callback",
-        afterSignUpUrl: window.location.origin + "/auth/callback"
+        afterSignInUrl: window.location.origin + "/api/auth/callback",
+        afterSignUpUrl: window.location.origin + "/api/auth/callback"
       }});
 
     }});
@@ -400,7 +400,7 @@ def clerk_signin():
 
 
 # Redirect after successful sign-in
-@app.get("/auth/callback", response_class=HTMLResponse)
+@app.get("/api/auth/callback", response_class=HTMLResponse)
 def auth_callback():
     return f"""
 <!DOCTYPE html>
@@ -443,7 +443,7 @@ window.addEventListener("load", async function () {{
 
   try {{
 
-    const res = await fetch(origin + "/auth/me", {{
+    const res = await fetch(origin + "/api/auth/me", {{
       credentials: "include"
     }});
 
@@ -471,7 +471,7 @@ window.addEventListener("load", async function () {{
 
 
 
-@app.get("/auth/me")
+@app.get("/api/auth/me")
 def auth_me(claims=Depends(require_auth)):
     user = clerk.users.get(user_id=claims["sub"])
     print("CLERK USER:", user)
