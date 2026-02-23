@@ -15,7 +15,7 @@ const LandingPage = () => {
   const fetchUser = async () => {
     await new Promise(r => setTimeout(r, 200));
     
-    const response = await fetch('https:admin.diffrun.com/api/auth/me', {
+    const response = await fetch('/api/auth/me', {
       credentials: 'include'
     });
 
