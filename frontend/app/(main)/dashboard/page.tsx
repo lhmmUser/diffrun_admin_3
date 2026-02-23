@@ -50,7 +50,7 @@ const COUNTRY_OPTIONS: { label: string; value: CountryCode }[] = [
 ];
 
 export default function Home() {
-  const baseUrl = ""; // NEW: centralize base URL
+  const baseUrl = "https://admin.diffrun.com";
 
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [error, setError] = useState<string>("");
@@ -137,7 +137,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `stats/orders?${params.toString()}`;
+    return `https://admin.diffrun.com/stats/orders?${params.toString()}`;
   };
 
   const buildJobsUrl = (r: RangeKey) => {
@@ -171,7 +171,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `stats/revenue?${params.toString()}`;
+    return `h/stats/revenue?${params.toString()}`;
   };
 
 
