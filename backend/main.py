@@ -1873,7 +1873,7 @@ def stats_orders(
         "granularity": gran,
     }
 
-@app.get("/stats/revenue", tags=["stats"])
+@app.get("/api/stats/revenue", tags=["stats"])
 def stats_revenue(
     range: RangeKey = Query("1w"),
     start_date: Optional[str] = Query(None),
@@ -1910,7 +1910,7 @@ def stats_revenue(
 
 
 
-@app.get("/stats/ship-status")
+@app.get("/api/stats/ship-status")
 def stats_ship_status(
     range: str = Query(
         "1w", description="range key like 1d, 1w, 1m, 6m, this_month, custom"),
@@ -2115,7 +2115,7 @@ def stats_ship_status(
         "printer": printer or "all",
     }
 
-@app.get("/stats/preview-vs-orders", tags=["stats"])
+@app.get("/api/stats/preview-vs-orders", tags=["stats"])
 def stats_preview_vs_orders(
     range: RangeKey = Query("1w"),
     start_date: Optional[str] = Query(None),
@@ -2164,7 +2164,7 @@ def stats_preview_vs_orders(
         "granularity": gran,
     }
 
-@app.get("/orders_api")
+@app.get("/api/orders_api")
 def get_orders(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),
