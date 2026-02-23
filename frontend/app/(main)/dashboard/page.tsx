@@ -50,7 +50,7 @@ const COUNTRY_OPTIONS: { label: string; value: CountryCode }[] = [
 ];
 
 export default function Home() {
-  const baseUrl = "";
+  const baseUrl = ""; // NEW: centralize base URL
 
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [error, setError] = useState<string>("");
