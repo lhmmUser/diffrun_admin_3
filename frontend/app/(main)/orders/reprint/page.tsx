@@ -368,7 +368,7 @@ export default function ReprintPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/orders/approve-printing`, {
+      const res = await fetch(`${API_BASE}/api/orders/approve-printing`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -397,7 +397,7 @@ export default function ReprintPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/orders/send-to-google-sheet`, {
+      const res = await fetch(`${API_BASE}/api/orders/send-to-google-sheet`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -412,7 +412,7 @@ export default function ReprintPage() {
       }
 
       // trigger shiprocket
-      await fetch(`${API_BASE}/shiprocket/create-from-orders`, {
+      await fetch(`${API_BASE}/api/shiprocket/create-from-orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -436,7 +436,7 @@ export default function ReprintPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/orders/send-to-yara`, {
+      const res = await fetch(`${API_BASE}/api/orders/send-to-yara`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -451,7 +451,7 @@ export default function ReprintPage() {
       }
 
       // trigger shiprocket
-      await fetch(`${API_BASE}/shiprocket/create-from-orders`, {
+      await fetch(`${API_BASE}/api/shiprocket/create-from-orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -615,7 +615,7 @@ export default function OrdersView() {
                     }))
                 );
 
-                const response = await fetch(`${baseUrl}/orders/approve-printing`, {
+                const response = await fetch(`${baseUrl}/api/orders/approve-printing`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -770,7 +770,7 @@ export default function OrdersView() {
                 );
 
                 const trySend = async (): Promise<Response> => {
-                    const url = `${baseUrl}/orders/send-to-google-sheet`;
+                    const url = `${baseUrl}/api/orders/send-to-google-sheet`;
                     console.log("[GENESIS] POST", url, "body:", selectedOrderIds);
 
                     let res = await fetch(url, {
@@ -844,7 +844,7 @@ export default function OrdersView() {
                     console.log("[SHIPROCKET] POST payload:", srPayload);
 
                     const srRes = await fetch(
-                        `${baseUrl}/shiprocket/create-from-orders`,
+                        `${baseUrl}/api/shiprocket/create-from-orders`,
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -1028,7 +1028,7 @@ export default function OrdersView() {
 
                 // Try POST with JSON array first, fallback to wrapped object on 422
                 const trySend = async (): Promise<Response> => {
-                    const url = `${baseUrl}/orders/send-to-yara`;
+                    const url = `${baseUrl}/api/orders/send-to-yara`;
                     console.log("[YARA] POST", url, "body:", selectedOrderIds);
 
                     let res = await fetch(url, {
@@ -1105,7 +1105,7 @@ export default function OrdersView() {
                     console.log("[SHIPROCKET] POST payload:", srPayload);
 
                     const srRes = await fetch(
-                        `${baseUrl}/shiprocket/create-from-orders`,
+                        `${baseUrl}/api/shiprocket/create-from-orders`,
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -1278,7 +1278,7 @@ export default function OrdersView() {
                     const jobId = orders.find((o) => o.orderId === orderId)?.jobId;
                     if (!jobId) continue;
 
-                    const res = await fetch(`${baseUrl}/send-feedback-email/${jobId}`, {
+                    const res = await fetch(`${baseUrl}/api/send-feedback-email/${jobId}`, {
                         method: "POST",
                     });
                     console.log(
@@ -1311,7 +1311,7 @@ export default function OrdersView() {
 
                 console.log("[UNAPPROVE] job_ids:", selectedJobIds);
 
-                const response = await fetch(`${baseUrl}/orders/unapprove`, {
+                const response = await fetch(`${baseUrl}/api/orders/unapprove`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ job_ids: selectedJobIds }),
@@ -1353,7 +1353,7 @@ export default function OrdersView() {
                 const results = await Promise.allSettled(
                     orderIds.map(async (orderId) => {
                         const res = await fetch(
-                            `${baseUrl}/orders/set-cust-status/${encodeURIComponent(
+                            `${baseUrl}/api/orders/set-cust-status/${encodeURIComponent(
                                 orderId
                             )}`,
                             {
@@ -1400,7 +1400,7 @@ export default function OrdersView() {
             const [orderId] = Array.from(selectedOrders);
 
             try {
-                const res = await fetch(`${baseUrl}/orders/lock`, {
+                const res = await fetch(`${baseUrl}/api/orders/lock`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1436,7 +1436,7 @@ export default function OrdersView() {
             const [orderId] = Array.from(selectedOrders);
 
             try {
-                const res = await fetch(`${baseUrl}/orders/unlock`, {
+                const res = await fetch(`${baseUrl}/api/orders/unlock`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

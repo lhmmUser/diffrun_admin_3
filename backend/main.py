@@ -949,7 +949,7 @@ def personalize_pronoun(gender: str) -> str:
         return "their"  # fallback to original if gender is unknown
 
 
-@app.post("/send-feedback-email/{job_id}")
+@app.post("/api/send-feedback-email/{job_id}")
 def send_feedback_email(job_id: str, background_tasks: BackgroundTasks):
     # 1) Find the order
     order = orders_collection.find_one({"job_id": job_id})
@@ -3180,7 +3180,7 @@ def _get_ec2_status_rows() -> Tuple[List[dict], Optional[str]]:
 
 
 
-@app.post("/orders/send-to-google-sheet")
+@app.post("/api/orders/send-to-google-sheet")
 async def send_to_google_sheet(
     payload: BulkPrintRequest,
     background_tasks: BackgroundTasks,
@@ -3646,7 +3646,7 @@ def get_shipping_level(country_code: str) -> str:
     return "cp_ground"  # default fallback
 
 
-@app.post("/orders/approve-printing")
+@app.post("/api//orders/approve-printing")
 async def approve_printing(payload: BulkPrintRequest, background_tasks: BackgroundTasks):
     order_ids = payload.order_ids
     print_sent_by = payload.print_sent_by
@@ -4690,7 +4690,7 @@ def stats_order_status(
     }
 
 
-@app.post("/shiprocket/create-from-orders", tags=["shiprocket"])
+@app.post("/api/shiprocket/create-from-orders", tags=["shiprocket"])
 def shiprocket_create_from_orders(
     order_ids: List[str] = Body(..., embed=True,
                                 description="Diffrun order_ids like ['#123', '#124']"),
