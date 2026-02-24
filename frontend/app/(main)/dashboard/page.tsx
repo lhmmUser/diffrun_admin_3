@@ -137,7 +137,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `/stats/orders?${params.toString()}`;
+    return `/api/stats/orders?${params.toString()}`;
   };
 
   const buildJobsUrl = (r: RangeKey) => {
