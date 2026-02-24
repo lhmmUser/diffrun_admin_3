@@ -3342,7 +3342,7 @@ async def send_to_google_sheet(
 
     return results
 
-@app.get("/orders/reprint")
+@app.get("/api/orders/reprint")
 async def serve_order_detail():
     # Manually serve the order-detail.html file from the out directory
     orders_path = "../frontend/out/orders/reprint.html"
@@ -3352,7 +3352,7 @@ async def serve_order_detail():
     else:
         return {"message": "Frontend order-reprint.html not found."}
 
-@app.get("/orders/order-detail")
+@app.get("/api/orders/order-detail")
 async def serve_order_detail():
     # Manually serve the order-detail.html file from the out directory
     orders_path = "../frontend/out/orders/order-detail.html"

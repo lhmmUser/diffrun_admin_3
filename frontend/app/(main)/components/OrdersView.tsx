@@ -136,7 +136,7 @@ export default function OrdersView({
 
   const openOrder = (orderId: string) => {
     router.push(
-      `/orders/order-detail?order_id=${encodeURIComponent(orderId)}`,
+      `/api/orders/order-detail?order_id=${encodeURIComponent(orderId)}`,
       {
         scroll: false,
       }
