@@ -766,7 +766,7 @@ async def _auto_reconcile_and_sign_once() -> None:
                 # 7) Optional /reconcile/mark (best-effort)
                 try:
                     mark_payload = {"job_id": job_id, "razorpay_payment_id": payment_id}
-                    await client.post(f"{API_BASE}/reconcile/mark", json=mark_payload)
+                    await client.post(f"{API_BASE}/api/reconcile/mark", json=mark_payload)
                 except Exception:
                     pass
 

@@ -6014,7 +6014,7 @@ def download_xlsx_yippee(from_date: str = Query(...), to_date: str = Query(...))
     except Exception as e:
         return Response(f"❌ Error building XLSX: {e}", media_type="text/plain", status_code=500)
 
-@app.post("/reconcile/mark")
+@app.post("/api/reconcile/mark")
 def mark_reconciled(payload: dict):
     job_id = payload.get("job_id")
     razorpay_payment_id = payload.get(

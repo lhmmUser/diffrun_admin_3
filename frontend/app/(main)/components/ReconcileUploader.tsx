@@ -412,9 +412,9 @@ if (verifyRes.ok && verifyJson?.success) {
   // NEW: mark reconciled
   try {
     const flagPayload = { job_id: jobId, razorpay_payment_id: pid };
-    console.log("[RECONCILE FLAG] POST", `${API_BASE}/reconcile/mark`, "payload:", flagPayload);
+    console.log("[RECONCILE FLAG] POST", `${API_BASE}/api/reconcile/mark`, "payload:", flagPayload);
 
-    const flagRes = await fetch(`${API_BASE}/reconcile/mark`, {
+    const flagRes = await fetch(`${API_BASE}/api/reconcile/mark`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(flagPayload),
