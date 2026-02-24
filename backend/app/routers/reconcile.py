@@ -184,7 +184,7 @@ def _render_na_table(title: str, wnd_from: str, wnd_to: str, rows: list[dict]) -
 
 
 # ------------------------------ KEEP: /orders --------------------------------
-@router.get("/orders")
+@router.get("/api/orders")
 def get_orders(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),
@@ -296,7 +296,7 @@ async def _vlookup_core(
     return resp  # already a dict
 
 
-@router.get("/vlookup-payment-to-orders/auto")
+@router.get("/api/vlookup-payment-to-orders/auto")
 async def vlookup_payment_to_orders_auto(
     # Payments: ALL STATUSES by default (None)
     status: Optional[str] = Query(None, description="Filter payments fetched from Razorpay by status; omit for ALL"),

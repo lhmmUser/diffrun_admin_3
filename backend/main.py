@@ -147,8 +147,8 @@ TIMESTAMP_FIELD = "time_req_recieved"
 IST_OFFSET = timedelta(hours=5, minutes=30)
 AWS_REGION = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION")
 API_BASE = os.getenv("NEXT_PUBLIC_API_BASE_URL", "http://127.0.0.1:8001")
-VLOOKUP_PATH = "/reconcile/vlookup-payment-to-orders/auto"
-DETAILS_PATH = "/reconcile/na-payment-details"
+VLOOKUP_PATH = "/api/reconcile/vlookup-payment-to-orders/auto"
+DETAILS_PATH = "/api/reconcile/na-payment-details"
 EMAIL_USER = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASS = os.getenv("EMAIL_PASSWORD")
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -614,6 +614,20 @@ async def _run_feedback_emails_once():
         cron_feedback_emails(limit=200)
     except Exception:
         logger.exception("Feedback email cron failed")
+@app.get("/api/orders/meta/by-job/{job_id}")
+def order_meta_by_job(job_id: str):
+    doc = orders_collection.find_one(
+        {"job_id": job_id},
+        {"_id": 0, "book_id": 1, "book_style": 1}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Not found")
+    # normalize keys if you want
+    return {
+        "book_id": doc.get("book_id"),
+        "book_style": doc.get("book_style")
+    }
+
 
 def chunked_iterable(items: List, size: int):
     for i in range(0, len(items), size):
