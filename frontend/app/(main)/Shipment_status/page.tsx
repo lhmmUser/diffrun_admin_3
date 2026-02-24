@@ -176,7 +176,7 @@ export default function ShipmentStatusPage() {
     if (!ids || ids.length === 0) return;
     const params = new URLSearchParams();
     ids.forEach(id => params.append("order_ids", id));
-    window.location.href = `/Shipment_orders?${params.toString()}`;
+    window.location.href = `/api/Shipment_orders?${params.toString()}`;
   };
 
   return (

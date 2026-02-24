@@ -161,7 +161,7 @@ export default function OrderStatusPage() {
     const params = new URLSearchParams();
     ids.forEach((id) => params.append("order_ids", id));
 
-    window.location.href = `/Shipment_orders?${params.toString()}`;
+    window.location.href = `/api/Shipment_orders?${params.toString()}`;
   };
 
   return (

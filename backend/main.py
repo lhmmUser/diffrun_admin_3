@@ -6967,7 +6967,7 @@ async def serve_dashboard():
     
 
            
-@app.get("/orders")
+@app.get("/api/orders")
 async def serve_orders():
     # Manually serve the orders.html file from the out directory
     orders_path = "../frontend/out/orders.html"
@@ -6977,7 +6977,7 @@ async def serve_orders():
     else:
         return {"message": "Frontend orders.html not found."}
     
-@app.get("/jobs")
+@app.get("/api/jobs")
 async def serve_jobs():
     # Manually serve the jobs.html file from the out directory
     jobs_path = "../frontend/out/jobs.html"
@@ -6988,7 +6988,7 @@ async def serve_jobs():
         return {"message": "Frontend jobs.html not found."}
     
 
-@app.get("/test")
+@app.get("/api/test")
 async def serve_test_orders():
     # Manually serve the orders.html file from the out directory
     orders_path = "../frontend/out/test.html"
@@ -6998,7 +6998,7 @@ async def serve_test_orders():
     else:
         return {"message": "Frontend test.html not found."}
            
-@app.get("/rejected-orders")
+@app.get("/api/rejected-orders")
 async def serve_rejected_orders():
     # Manually serve the rejected-orders.html file from the out directory
     orders_path = "../frontend/out/rejected-orders.html"
@@ -7008,7 +7008,7 @@ async def serve_rejected_orders():
     else:
         return {"message": "Frontend rejected-orders.html not found."}
            
-@app.get("/export")
+@app.get("/api/export")
 async def serve_export():
     # Manually serve the export.html file from the out directory
     orders_path = "../frontend/out/export.html"
@@ -7018,7 +7018,7 @@ async def serve_export():
     else:
         return {"message": "Frontend export.html not found."}
    
-@app.get("/darkfantasy")
+@app.get("/api/darkfantasy")
 async def serve_darkfantasy():
     # Manually serve the darkfantasy.html file from the out directory
     orders_path = "../frontend/out/darkfantasy.html"
@@ -7028,7 +7028,7 @@ async def serve_darkfantasy():
     else:
         return {"message": "Frontend darkfantasy.html not found."}
 
-@app.get("/razorpay_analysis")
+@app.get("/api/razorpay_analysis")
 async def serve_razorpay_analysis():
     # Manually serve the razorpay_analysis.html file from the out directory
     orders_path = "../frontend/out/razorpay_analysis.html"
@@ -7038,7 +7038,7 @@ async def serve_razorpay_analysis():
     else:
         return {"message": "Frontend razorpay_analysis.html not found."}
   
-@app.get("/Shipment_status")
+@app.get("/api/Shipment_status")
 async def serve_shipment_status():
     # Manually serve the shipment_status.html file from the out directory
     orders_path = "../frontend/out/Shipment_status.html"
@@ -7048,7 +7048,7 @@ async def serve_shipment_status():
     else:
         return {"message": "Frontend shipment_status.html not found."}
   
-@app.get("/Order_status")
+@app.get("/api/Order_status")
 async def serve_order_status():
     # Manually serve the order_status.html file from the out directory
     orders_path = "../frontend/out/Order_status.html"
@@ -7058,7 +7058,7 @@ async def serve_order_status():
     else:
         return {"message": "Frontend Order_status.html not found."}
     
-@app.get("/Shipment_KPI")
+@app.get("/api/Shipment_KPI")
 async def serve_shipment_kpi():
     # Manually serve the Shipment_KPI.html file from the out directory
     orders_path = "../frontend/out/Shipment_KPI.html"
@@ -7068,7 +7068,7 @@ async def serve_shipment_kpi():
     else:
         return {"message": "Frontend Shipment_KPI.html not found."}
 
-@app.get("/Shipment_orders")
+@app.get("/api/Shipment_orders")
 async def serve_shipment_orders():
     # Manually serve the Shipment_orders.html file from the out directory
     orders_path = "../frontend/out/Shipment_orders.html"
