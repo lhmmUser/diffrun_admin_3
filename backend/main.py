@@ -95,7 +95,9 @@ orders_collection = db["user_details"]
 PREVIEW_URL_FIELD = "preview_url"
 JOBS_CREATED_AT_FIELD = "created_at"
 PAID_FIELD = "paid"
+s3 = boto3.client('s3')
 
+BUCKET_NAME = "replicacomfy"
 ALLOWED_EMAILS = {
     "husain@lhmm.in",
     "hello@lhmm.in",
