@@ -2164,7 +2164,7 @@ def stats_preview_vs_orders(
         "granularity": gran,
     }
 
-@app.get("/orders_api")
+@app.get("/api/orders_api")
 def get_orders(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),

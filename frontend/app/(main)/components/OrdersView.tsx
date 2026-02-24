@@ -295,7 +295,7 @@ export default function OrdersView({
         return;
       }
       const res = await fetch(
-        `${baseUrl}/orders_api/${encodeURIComponent(orderIdInUrl)}`,
+        `${baseUrl}/api/orders_api/${encodeURIComponent(orderIdInUrl)}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -369,7 +369,7 @@ export default function OrdersView({
       params.append("sort_dir", sortDir);
       if (search && search.trim() !== "") params.append("q", search.trim());
 
-      const res = await fetch(`${baseUrl}/orders_api?${params.toString()}`);
+      const res = await fetch(`${baseUrl}/api/orders_api?${params.toString()}`);
       if (!res.ok) {
         console.error(
           "[fetchOrders] /orders returned",
@@ -584,7 +584,7 @@ export default function OrdersView({
         setDetailOrder(null);
 
         const res = await fetch(
-          `${baseUrl}/orders_api/${encodeURIComponent(orderIdInUrl)}`
+          `${baseUrl}/api/orders_api/${encodeURIComponent(orderIdInUrl)}`
         );
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
