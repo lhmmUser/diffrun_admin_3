@@ -196,7 +196,49 @@ collection_yippee = yippee_db["user-data"]
 
 scheduler = BackgroundScheduler(timezone=IST_TZ)
 
+class CloudprinterWebhookBase(BaseModel):
+    apikey: str
+    type: str
+    order: Optional[str] = None
+    item: Optional[str] = None
+    order_reference: str
+    item_reference: Optional[str] = None
+    datetime: str
 
+
+class ItemProducedPayload(CloudprinterWebhookBase):
+    pass
+
+
+class ItemErrorPayload(CloudprinterWebhookBase):
+    error_code: str
+    error_message: str
+
+
+class ItemValidatedPayload(CloudprinterWebhookBase):
+    pass
+
+
+class ItemCanceledPayload(CloudprinterWebhookBase):
+    pass
+
+
+class CloudprinterOrderCanceledPayload(CloudprinterWebhookBase):
+    pass
+
+
+class ItemDeletePayload(CloudprinterWebhookBase):
+    pass
+
+
+class ItemShippedPayload(CloudprinterWebhookBase):
+    tracking: str
+    shipping_option: str
+
+
+class UnapproveRequest(BaseModel):
+    job_ids: List[str]
+    
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -6930,6 +6972,126 @@ def update_order_status(order_id: str, payload: OrderStatusUpdatePayload):
 
     return response
 
+class LockRequest(BaseModel):
+    # Who is locking/unlocking – you can use admin email here
+    order_id: str
+    user_email: EmailStr
+
+@app.post("/orders/unapprove")
+async def unapprove_orders(req: UnapproveRequest):
+    print(f"Unapprove request: {req}")
+    for job_id in req.job_ids:
+        print(f"Unapproving order with job_id: {job_id}")
+        result = orders_collection.update_one(
+            {"job_id": job_id},
+            {"$set": {"approved": False}}
+        )
+        print(f"Update result: {result}")
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=404, detail=f"No order found with job_id {job_id}")
+
+    prefix = f"output/{job_id}/"
+    folders_to_move = ["final_coverpage/", "approved_output/"]
+    for folder in folders_to_move:
+        print(f"Moving folder: {folder}")
+        old_prefix = prefix + folder
+        new_prefix = prefix + "previous/" + folder
+
+        response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=old_prefix)
+        print(f"List objects response: {response}")
+
+        if "Contents" not in response:
+            continue
+
+        for obj in response["Contents"]:
+            src_key = obj["Key"]
+            dst_key = src_key.replace(old_prefix, new_prefix, 1)
+            print(f"Moving from: {src_key} to: {dst_key}")
+
+            s3.copy_object(Bucket=BUCKET_NAME, CopySource={
+                           "Bucket": BUCKET_NAME, "Key": src_key}, Key=dst_key)
+            s3.delete_object(Bucket=BUCKET_NAME, Key=src_key)
+
+    print(f"Unapproved {len(req.job_ids)} orders successfully")
+    return {"message": f"Unapproved {len(req.job_ids)} orders successfully"}
+
+@app.post("/api/orders/lock")
+async def lock_order(payload: LockRequest):
+    order_id = payload.order_id
+
+    order = orders_collection.find_one({"order_id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.get("locked"):
+        locked_by = order.get("locked_by") or "unknown"
+        raise HTTPException(
+            status_code=400,
+            detail=f"Order is already locked by {locked_by}",
+        )
+
+    result = orders_collection.update_one(
+        {"order_id": order_id},
+        {
+            "$set": {
+                "locked": True,
+                "locked_by": payload.user_email,
+                "locked_at": datetime.now(timezone.utc).isoformat(),
+                "unlock_by": "",
+                "unlock_at": "",
+            }
+        },
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=409,
+            detail="Failed to lock order – please retry",
+        )
+
+    return {
+        "order_id": order_id,
+        "locked": True,
+        "locked_by": payload.user_email,
+    }
+
+
+@app.post("/api/orders/unlock")
+async def unlock_order(payload: LockRequest):
+    order_id = payload.order_id
+
+    order = orders_collection.find_one({"order_id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if not order.get("locked"):
+        raise HTTPException(
+            status_code=400,
+            detail="Order is not locked",
+        )
+
+    result = orders_collection.update_one(
+        {"order_id": order_id},
+        {
+            "$set": {
+                "locked": False,
+                "unlock_by": payload.user_email,
+                "unlock_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=409,
+            detail="Failed to unlock order – please retry",
+        )
+
+    return {
+        "order_id": order_id,
+        "locked": False,
+    }
 
 @app.get("/api")
 def read_root():
