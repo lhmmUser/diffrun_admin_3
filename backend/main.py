@@ -5883,7 +5883,7 @@ def debug_run_reconcile_now():
     _hourly_reconcile_and_email()
     return {"ok": True}
 
-@app.get("/stats/sla-cohorts") #Delivery vs Undelivered in 8 days
+@app.get("/api/stats/sla-cohorts") #Delivery vs Undelivered in 8 days
 def stats_sla_cohorts(
     start_date: str = Query(..., description="YYYY-MM-DD (processed_at cohort)"),
     end_date: str = Query(..., description="YYYY-MM-DD (processed_at cohort)"),
@@ -6020,7 +6020,7 @@ def stats_sla_cohorts(
 
     return response
 
-@app.get("/stats/delivery-latency-cohorts") #Delivery Time Cohort table
+@app.get("/api/stats/delivery-latency-cohorts") #Delivery Time Cohort table
 def delivery_latency_cohorts(
     start_date: str = Query(..., description="YYYY-MM-DD"),
     end_date: str = Query(..., description="YYYY-MM-DD"),
@@ -6196,7 +6196,7 @@ def delivery_latency_cohorts(
 
     return response
 
-@app.get("/stats/shipment-weekly-sla")
+@app.get("/api/stats/shipment-weekly-sla")
 def shipment_weekly_sla(
     weeks: int = Query(6, ge=1, le=12),
     exclude_weeks: int = Query(2, ge=0, le=4),
@@ -6356,7 +6356,7 @@ def shipment_weekly_sla(
         },
     }
 
-@app.get("/stats/sla-summary") #“Orders delivered within 8 days”, “Not delivered within 8 days”)
+@app.get("/api/stats/sla-summary") #“Orders delivered within 8 days”, “Not delivered within 8 days”)
 def stats_sla_summary(
     start_date: str = Query(...),
     end_date: str = Query(...)
@@ -6424,7 +6424,7 @@ def stats_sla_summary(
         "total_orders": delivered + undelivered,
     }
 
-@app.get("/stats/production-kpis")
+@app.get("/api/stats/production-kpis")
 def production_kpis():
     query = {
         "$and": [
@@ -6494,7 +6494,7 @@ def production_kpis():
         },
     }
 
-@app.get("/stats/production-kpis-graph")
+@app.get("/api/stats/production-kpis-graph")
 def production_kpis_graph(
     start_date: str = Query(..., description="YYYY-MM-DD"),
     end_date: str = Query(..., description="YYYY-MM-DD"),
@@ -6597,7 +6597,7 @@ def production_kpis_graph(
         },
     }
 
-@app.get("/stats/ship-status-v2")
+@app.get("/api/stats/ship-status-v2")
 def stats_ship_status_v2(
     range: str = Query("1w", description="1d, 1w, 1m, 6m, this_month, custom"),
     start_date: Optional[str] = Query(None),
@@ -6857,7 +6857,7 @@ def stats_ship_status_v2(
         "printer": printer or "all",
     }
 
-@app.post("/orders/{order_id}/status")
+@app.post("/api/orders/{order_id}/status")
 def update_order_status(order_id: str, payload: OrderStatusUpdatePayload):
     allowed = {"refunded", "cancelled", "rejected", "reprint"}
 

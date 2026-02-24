@@ -88,7 +88,7 @@ export default function ShipmentStatusPage() {
     }
     params.append("printer", "all");
     params.append("loc", country);
-    return `${baseUrl}/stats/ship-status-v2?${params.toString()}`;
+    return `${baseUrl}/api/stats/ship-status-v2?${params.toString()}`;
   };
 
   const parseRows = (json: any): ShipRow[] => {

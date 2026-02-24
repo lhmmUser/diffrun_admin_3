@@ -253,7 +253,7 @@ export default function SLACohortsPage() {
     setTableRows([]);
 
     const res = await fetch(
-      `${API_BASE}/stats/sla-cohorts?start_date=${startDate}&end_date=${endDate}`
+      `${API_BASE}/api/stats/sla-cohorts?start_date=${startDate}&end_date=${endDate}`
     );
     const data = await res.json();
     setSummary(Array.isArray(data) ? data : []);
@@ -262,7 +262,7 @@ export default function SLACohortsPage() {
 
   const fetchLatencyCohorts = async () => {
     const res = await fetch(
-      `${API_BASE}/stats/delivery-latency-cohorts?start_date=${startDate}&end_date=${endDate}`
+      `${API_BASE}/api/stats/delivery-latency-cohorts?start_date=${startDate}&end_date=${endDate}`
     );
     const data = await res.json();
     setLatencyData(Array.isArray(data) ? data : []);
@@ -285,7 +285,7 @@ export default function SLACohortsPage() {
       }
 
 
-      const url = `${API_BASE}/stats/shipment-weekly-sla?${params.toString()}`;
+      const url = `${API_BASE}/api/stats/shipment-weekly-sla?${params.toString()}`;
 
       const res = await fetch(url);
 
@@ -305,7 +305,7 @@ export default function SLACohortsPage() {
     setSelectedDate(date);
 
     const res = await fetch(
-      `${API_BASE}/stats/sla-cohorts?start_date=${startDate}&end_date=${endDate}&cohort_date=${date}`
+      `${API_BASE}/api/stats/sla-cohorts?start_date=${startDate}&end_date=${endDate}&cohort_date=${date}`
     );
     const data = await res.json();
     setTableRows(Array.isArray(data) ? data : []);
@@ -315,7 +315,7 @@ export default function SLACohortsPage() {
     if (!startDate || !endDate) return;
 
     const res = await fetch(
-      `${API_BASE}/stats/sla-summary?start_date=${startDate}&end_date=${endDate}`
+      `${API_BASE}/api/stats/sla-summary?start_date=${startDate}&end_date=${endDate}`
     );
     const data = await res.json();
 
@@ -326,7 +326,7 @@ export default function SLACohortsPage() {
   };
 
   const fetchProductionKpis = async () => {
-    const res = await fetch(`${API_BASE}/stats/production-kpis`);
+    const res = await fetch(`${API_BASE}/api/stats/production-kpis`);
     const data = await res.json();
     setProductionKpis(data);
   };
@@ -335,7 +335,7 @@ export default function SLACohortsPage() {
     if (!prodStartDate || !prodEndDate) return;
 
     const res = await fetch(
-      `${API_BASE}/stats/production-kpis-graph?start_date=${prodStartDate}&end_date=${prodEndDate}`
+      `${API_BASE}/api/stats/production-kpis-graph?start_date=${prodStartDate}&end_date=${prodEndDate}`
     );
 
     const data = await res.json();
