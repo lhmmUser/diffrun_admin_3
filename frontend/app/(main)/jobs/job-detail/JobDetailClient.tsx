@@ -71,7 +71,7 @@ const JobDetail = () => {
 
   const endpoint = useMemo(() => {
     if (!jobIdFromQS) return null;
-    return `${backendUrl}/jobs/${encodeURIComponent(jobIdFromQS)}/mini`;
+    return `${backendUrl}/api/jobs/${encodeURIComponent(jobIdFromQS)}/mini`;
   }, [backendUrl, jobIdFromQS]);
 
   const fetchData = async () => {

@@ -3362,7 +3362,7 @@ async def serve_order_detail():
     else:
         return {"message": "Frontend order-detail.html not found."}
     
-@app.get("/jobs/job-detail")
+@app.get("/api/jobs/job-detail")
 async def serve_job_detail():
     # Manually serve the job-detail.html file from the out directory
     jobs_path = "../frontend/out/jobs/job-detail.html"
@@ -3372,7 +3372,7 @@ async def serve_job_detail():
     else:
         return {"message": "Frontend job-detail.html not found."}
 
-@app.get("/jobs/{job_id}/mini")
+@app.get("/api/jobs/{job_id}/mini")
 def get_job_mini(job_id: str) -> Dict[str, Any]:
     order = orders_collection.find_one({"job_id": job_id})
     if not order:
@@ -4899,7 +4899,7 @@ def _to_naive_utc(x):
         return x.astimezone(timezone.utc).replace(tzinfo=None) if x.tzinfo else x
     return x
 
-@app.get("/jobs_api")
+@app.get("/api/jobs_api")
 def get_jobs(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),

@@ -85,7 +85,7 @@ export default function JobsPage() {
 
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && search.trim() !== "") {
-            router.push(`/jobs/job-detail?job_id=${encodeURIComponent(search.trim())}`);
+            router.push(`/api/jobs/job-detail?job_id=${encodeURIComponent(search.trim())}`);
         }
     };
 
@@ -123,7 +123,7 @@ export default function JobsPage() {
             params.append("limit", itemsPerPage.toString());
             if (searchJobId.trim() !== "") params.append("q", searchJobId.trim());
 
-            const res = await fetch(`${baseUrl}/jobs_api?${params.toString()}`);
+            const res = await fetch(`${baseUrl}/api/jobs_api?${params.toString()}`);
             console.log('Fetching jobs from:', `${baseUrl}/jobs_api?${params.toString()}`);
 
             if (!res.ok) {
@@ -170,7 +170,7 @@ export default function JobsPage() {
     const currentOrders = orders; // orders now contains only current page data
 
     const openJobDetail = (jobId: string) => {
-        router.push(`/jobs/job-detail?job_id=${encodeURIComponent(jobId)}`, {
+        router.push(`/api/jobs/job-detail?job_id=${encodeURIComponent(jobId)}`, {
             scroll: false,
         });
     }
