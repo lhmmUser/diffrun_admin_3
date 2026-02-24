@@ -3893,7 +3893,7 @@ def get_shipping_detail(order_id: str):
 
 
 
-@app.get("/shipment-orders")
+@app.get("/api/shipment-orders")
 def get_shipment_orders(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),
@@ -4457,7 +4457,7 @@ def _render_na_table(title: str, wnd_from: str, wnd_to: str, rows: list[dict]) -
 
     return header + table
 
-@app.get("/stats/order-status")
+@app.get("/api/stats/order-status")
 def stats_order_status(
     range: str = Query("1w", description="1d, 1w, 1m, 6m, this_month, custom"),
     start_date: Optional[str] = Query(None),

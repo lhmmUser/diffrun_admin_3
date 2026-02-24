@@ -79,7 +79,7 @@ export default function OrderStatusPage() {
     params.append("printer", "all");
     params.append("loc", country);
 
-    return `${baseUrl}/stats/order-status?${params.toString()}`;
+    return `${baseUrl}/api/stats/order-status?${params.toString()}`;
   };
 
   const parseRows = (json: any): OrderRow[] => {
