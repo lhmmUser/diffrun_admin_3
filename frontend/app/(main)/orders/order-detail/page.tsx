@@ -405,7 +405,7 @@ export default function OrderDetailPage() {
       setLoadErr(null);
       setOrder(null);
       try {
-        const url = `${API_BASE}/orders/${encodeURIComponent(rawOrderId)}`;
+        const url = `${API_BASE}/api/orders/${encodeURIComponent(rawOrderId)}`;
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -415,7 +415,7 @@ export default function OrderDetailPage() {
 
         // Debug: log order shape so we can see where printer lives
         // eslint-disable-next-line no-console
-        console.info("DEBUG /orders response:", data);
+        console.info("DEBUG /api/orders response:", data);
 
         // Find printer info in many possible fields
         const printerCandidates = [
@@ -654,7 +654,7 @@ export default function OrderDetailPage() {
         return;
       }
       const res = await fetch(
-        `${API_BASE}/orders/${encodeURIComponent(rawOrderId)}`,
+        `${API_BASE}/api/orders/${encodeURIComponent(rawOrderId)}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -875,7 +875,7 @@ export default function OrderDetailPage() {
 
       // 1. Save status + remarks first (same as now)
       const res = await fetch(
-        `${API_BASE}/orders/${encodeURIComponent(order.order_id)}/status`,
+        `${API_BASE}/api/orders/${encodeURIComponent(order.order_id)}/status`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -896,7 +896,7 @@ export default function OrderDetailPage() {
       // 2. If REPRINT → redirect to reprint page
       if (actionType === "reprint") {
         router.push(
-          `/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(actionRemarks)}`
+          `/api/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(actionRemarks)}`
         );
         return; // 🚨 VERY IMPORTANT: stop here
       }
@@ -942,7 +942,7 @@ export default function OrderDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => router.push("/orders")}
+              onClick={() => router.push("/api/orders")}
               className="px-2.5 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 text-xs"
             >
               Back
@@ -1679,7 +1679,7 @@ export default function OrderDetailPage() {
                     <button
                       onClick={() => {
                         router.push(
-                          `/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(
+                          `/api/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(
                             order.order_status_remarks || actionRemarks || ""
                           )}`
                         );
