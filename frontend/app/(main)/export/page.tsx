@@ -71,7 +71,8 @@ const Export = () => {
 
         // NEW fields from backend
         'shipping_status',
-        'time_taken'
+        'time_taken',
+        'shipping_charges',
       ].join(',');
 
       const params = new URLSearchParams({

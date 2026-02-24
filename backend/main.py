@@ -4893,6 +4893,121 @@ def shiprocket_create_from_orders(
 
     return {"created": created_refs, "awbs": awb_results, "pickup": pickup_res, "errors": errors}
 
+def _to_number(value):
+    try:
+        if value is None:
+            return 0
+        if isinstance(value, (int, float)):
+            return value
+        value = value.strip()
+        if value == "":
+            return 0
+        return float(value)
+    except Exception:
+        return 0
+
+
+@app.get("/api/shiprocket/order/show")
+def shiprocket_order_show(internal_order_id: str):
+
+    if not internal_order_id:
+        raise HTTPException(
+            status_code=400, detail="internal_order_id required")
+
+    # 1️⃣ Lookup internal order in orders collection (UNCHANGED)
+    doc = orders_collection.find_one({"order_id": internal_order_id})
+    if not doc:
+        raise HTTPException(
+            status_code=404, detail=f"{internal_order_id} not found in database")
+
+    sr_order_id = (
+        doc.get("sr_order_id")
+        or doc.get("shiprocket_data", {}).get("sr_order_id")
+    )
+    if not sr_order_id:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{internal_order_id} has no Shiprocket order linked (sr_order_id missing)"
+        )
+
+    # 2️⃣ Call Shiprocket API (UNCHANGED)
+    token = _sr_login_token()
+    headers = _sr_headers(token)
+    url = f"{SHIPROCKET_BASE}/v1/external/orders/show/{sr_order_id}"
+
+    try:
+        r = requests.get(url, headers=headers, timeout=30)
+        r.raise_for_status()
+    except Exception as e:
+        raise HTTPException(
+            status_code=502, detail=f"Shiprocket API error: {str(e)}")
+
+    data = r.json().get("data", {}) or {}
+
+    # 3️⃣ Extract shipping_charges (UNCHANGED)
+    raw_shipping = (
+        data.get("others", {}).get("shipping_charges")
+        or data.get("others", {}).get("shipping_charge")
+        or data.get("shipping_charges")
+        or data.get("shipping_charge")
+        or data.get("awb_data", {}).get("charges", {}).get("freight_charges")
+        or "0"
+    )
+
+    shipping_charges = _to_number(raw_shipping)
+
+    # 4️⃣ Extract courier_name (UNCHANGED)
+    shipments = data.get("shipments") or {}
+    if isinstance(shipments, dict):
+        courier_name = shipments.get(
+            "courier") or shipments.get("courier_name") or ""
+    elif isinstance(shipments, list) and shipments:
+        courier_name = shipments[0].get(
+            "courier") or shipments[0].get("courier_name") or ""
+    else:
+        courier_name = ""
+
+    # 5️⃣ Store the result ONLY in shipping_collection
+    try:
+        shipping_collection.update_one(
+            {"order_id": internal_order_id},
+            {
+                "$set": {
+                    "order_id": internal_order_id,
+                    "sr_order_id": sr_order_id,
+                    "shipping_charges": shipping_charges,
+                    "courier_name": courier_name,
+                    "shiprocket_raw": data,
+                }
+            },
+            upsert=True
+        )
+    except Exception as e:
+        logging.exception(
+            f"[SR] Failed to update shipping_collection for {internal_order_id}: {e}")
+    
+    # 6️⃣ Also update ONLY shipping_charges in orders_collection
+    try:
+        orders_collection.update_one(
+            {"order_id": internal_order_id},
+            {
+                "$set": {
+                    "shipping_charges": shipping_charges
+                }
+            }
+        )
+    except Exception as e:
+        logging.exception(
+            f"[SR] Failed to update orders_collection for {internal_order_id}: {e}"
+        )
+
+    return {
+        "order_id": internal_order_id,
+        "courier_name": courier_name,
+        "shipping_charges": shipping_charges
+    }
+
+
 def format_date(date_input: any) -> str:
 
     if not date_input:
@@ -5182,8 +5297,7 @@ def export_orders_filtered_csv(
         "shipping_address.city", "shipping_address.province", "shipping_address.zip",
         "discount_code", "paypal_capture_id", "transaction_id", "tracking_code",
         "partial_preview", "final_preview", "cust_status", "printer",
-        "shipping_status",
-        "time_taken",
+        "shipping_status", "time_taken", "shipping_charges",
     ]
 
     # Resolve requested fields
@@ -5211,6 +5325,8 @@ def export_orders_filtered_csv(
     projection["processed_at"] = projection.get("processed_at", 0) or 1
     projection["current_status"] = 1
     projection["current_timestamp_iso"] = 1   # REQUIRED for time_taken
+    projection["shipping_charges"] = 1
+
 
     # Filters
     query = {"order_id": {"$regex": r"^#\d+$"}}
@@ -5270,6 +5386,7 @@ def export_orders_filtered_csv(
         header_row = [
             "Shipping Status" if f == "shipping_status"
             else "Time taken" if f == "time_taken"
+            else "Shipping Charges" if f == "shipping_charges"
             else f
             for f in requested_fields
         ]
@@ -5355,6 +5472,11 @@ def export_orders_filtered_csv(
                     else:
                         row.append("")
                     continue
+                # Shipping Charges field
+                if field == "shipping_charges":
+                    row.append(doc.get("shipping_charges", ""))  # Add shipping_charges value
+                    continue
+
 
                 # Nested field handling
                 if "." in field:
@@ -7243,8 +7365,6 @@ async def serve_shipment_orders():
         return {"message": "Frontend Shipment_orders.html not found."}
 
 
-
-
 @app.get("/unauthorized")
 async def serve_unauthorized():
     # Manually serve the unauthorized.html file from the out directory
@@ -7258,9 +7378,3 @@ async def serve_unauthorized():
 
 # Serve all files from the Next.js export folder (out/)
 app.mount("/", StaticFiles(directory="../frontend/out", html=True), name="static")
-
-
-
-
-
-

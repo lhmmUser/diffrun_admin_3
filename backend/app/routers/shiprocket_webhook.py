@@ -191,11 +191,11 @@ async def shiprocket_tracking(request: Request, background: BackgroundTasks) -> 
             if internal_id:
                 base_url = os.getenv("NEXT_PUBLIC_API_BASE_URL")
                 requests.get(
-                    f"{base_url}/shiprocket/order/show",
+                    f"{base_url}/api/shiprocket/order/show",
                     params={"internal_order_id": internal_id},
                     timeout=10
                 )
-                logging.info(f"[SR WH] Triggered /shiprocket/order/show for {internal_id}")
+                logging.info(f"[SR WH] Triggered /api/shiprocket/order/show for {internal_id}")
         except Exception as exc:
             logging.exception(f"[SR WH] Failed to trigger order/show for {event.order_id}: {exc}")
 
