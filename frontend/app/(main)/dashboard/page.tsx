@@ -154,7 +154,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `${baseUrl}/stats/preview-vs-orders?${params.toString()}`;
+    return `${baseUrl}/api/stats/preview-vs-orders?${params.toString()}`;
   };
 
   const buildRevenueUrl = (r: RangeKey) => {
@@ -171,7 +171,7 @@ export default function Home() {
     // country
     params.append("loc", country);
 
-    return `/stats/revenue?${params.toString()}`;
+    return `/api/stats/revenue?${params.toString()}`;
   };
 
 
