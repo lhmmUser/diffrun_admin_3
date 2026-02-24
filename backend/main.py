@@ -238,7 +238,7 @@ class ItemShippedPayload(CloudprinterWebhookBase):
 
 class UnapproveRequest(BaseModel):
     job_ids: List[str]
-    
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -6977,7 +6977,7 @@ class LockRequest(BaseModel):
     order_id: str
     user_email: EmailStr
 
-@app.post("/orders/unapprove")
+@app.post("/api/orders/unapprove")
 async def unapprove_orders(req: UnapproveRequest):
     print(f"Unapprove request: {req}")
     for job_id in req.job_ids:
