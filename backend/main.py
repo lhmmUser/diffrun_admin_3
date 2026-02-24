@@ -3863,7 +3863,7 @@ async def approve_printing(payload: BulkPrintRequest, background_tasks: Backgrou
 
 
 
-@app.get("/orders/{order_id}")
+@app.get("/api/orders/{order_id}")
 def get_order_detail(order_id: str):
     print(f"[DEBUG] Fetching details for order_id: {order_id}")
     order = orders_collection.find_one({"order_id": order_id})
@@ -3871,7 +3871,7 @@ def get_order_detail(order_id: str):
         raise HTTPException(status_code=404, detail="Order not found")
     return _build_order_response(order)
 
-@app.get("/orders_api/{order_id}")
+@app.get("/api/orders_api/{order_id}")
 def get_order_detail(order_id: str):
     print(f"[DEBUG] Fetching details for order_id: {order_id}")
     order = orders_collection.find_one({"order_id": order_id})
