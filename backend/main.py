@@ -3923,7 +3923,7 @@ def get_order_detail(order_id: str):
         raise HTTPException(status_code=404, detail="Order not found")
     return _build_order_response(order)
 
-@app.get("/shipping/{order_id}")
+@app.get("/api/shipping/{order_id}")
 def get_shipping_detail(order_id: str):
     # debug
     print("DEBUG received order_id:", repr(order_id))
@@ -3934,7 +3934,6 @@ def get_shipping_detail(order_id: str):
             status_code=404, detail="Shipping details not found")
     shipping["_id"] = str(shipping.get("_id")) if shipping.get("_id") else None
     return shipping
-
 
 
 @app.get("/api/shipment-orders")

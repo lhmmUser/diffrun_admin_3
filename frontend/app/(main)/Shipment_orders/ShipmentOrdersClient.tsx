@@ -414,12 +414,12 @@ export default function OrdersView() {
             const fetchPromises = targets.map(async (order) => {
                 try {
                     const shipRes = await fetch(
-                        `${baseUrl}/shipping/${encodeURIComponent(order.orderId)}`
+                        `${baseUrl}/api/shipping/${encodeURIComponent(order.orderId)}`
                     );
 
                     if (!shipRes.ok) {
                         console.warn(
-                            `[SHIPPING] /shipping/${order.orderId} ->`,
+                            `[SHIPPING] /api/shipping/${order.orderId} ->`,
                             shipRes.status,
                             shipRes.statusText
                         );
