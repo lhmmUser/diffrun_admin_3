@@ -8,7 +8,7 @@ const Export = () => {
   // --- existing download function ---
   const handleDownload = async () => {
     try {
-      const response = await fetch(`${baseUrl}/export-orders-csv`);
+      const response = await fetch(`${baseUrl}/api/export-orders-csv`);
       if (!response.ok) throw new Error('Failed to download');
 
       const blob = await response.blob();
@@ -80,7 +80,7 @@ const Export = () => {
       });
 
       const response = await fetch(
-        `${baseUrl}/export-orders-filtered-csv?${params.toString()}`
+        `${baseUrl}/api/export-orders-filtered-csv?${params.toString()}`
       );
       if (!response.ok) throw new Error('Failed to download');
 

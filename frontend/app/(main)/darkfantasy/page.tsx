@@ -20,7 +20,7 @@ const DarkFantasyDownload = () => {
 
     try {
       const response = await fetch(
-        `${baseUrl}/download-csv?from_date=${fromDate}&to_date=${toDate}`
+        `${baseUrl}/api/download-csv?from_date=${fromDate}&to_date=${toDate}`
       );
 
       if (!response.ok) throw new Error('Failed to download');
@@ -51,7 +51,7 @@ const DarkFantasyDownload = () => {
     }
 
     const res = await fetch(
-      `${baseUrl}/download-xlsx?from_date=${fromDate}&to_date=${toDate}`
+      `${baseUrl}/api/download-xlsx?from_date=${fromDate}&to_date=${toDate}`
     );
     if (!res.ok) {
       alert('Failed to download');
@@ -79,7 +79,7 @@ const DarkFantasyDownload = () => {
     }
 
     const res = await fetch(
-      `${baseUrl}/download-xlsx-yippee?from_date=${fromDate}&to_date=${toDate}`
+      `${baseUrl}/api/download-xlsx-yippee?from_date=${fromDate}&to_date=${toDate}`
     );
     if (!res.ok) {
       alert('Failed to download Yippee XLSX');

@@ -5016,7 +5016,7 @@ def get_jobs(
         }
     }
 
-@app.get("/export-orders-csv")
+@app.get("/api/export-orders-csv")
 def export_orders_csv():
     fields = [
         "email", "phone_number", "age", "book_id", "book_style", "total_price", "gender", "paid",
@@ -5105,7 +5105,7 @@ def export_orders_csv():
         temp_file.flush()
         return FileResponse(temp_file.name, media_type="text/csv", filename="orders_export.csv")
 
-@app.get("/export-orders-filtered-csv")
+@app.get("/api/export-orders-filtered-csv")
 def export_orders_filtered_csv(
     paid: Optional[bool] = Query(
         None, description="Filter by paid (true/false)"),
@@ -5343,7 +5343,7 @@ def export_orders_filtered_csv(
         temp_file.flush()
         return FileResponse(temp_file.name, media_type="text/csv", filename="orders_filtered_export.csv")
 
-@app.get("/download-csv")
+@app.get("/api/download-csv")
 def download_csv(from_date: str = Query(...), to_date: str = Query(...)):
     try:
         # Validate date range (inclusive to 23:59:59 for to_date)
@@ -5579,7 +5579,7 @@ def _sla_base_query(start_utc, end_utc):
     }
 
 
-@app.get("/download-xlsx")
+@app.get("/api/download-xlsx")
 def download_xlsx(from_date: str = Query(...), to_date: str = Query(...)):
     try:
         # Validate range
@@ -5715,7 +5715,7 @@ def download_xlsx(from_date: str = Query(...), to_date: str = Query(...)):
         return Response(f"❌ Error building XLSX: {e}", media_type="text/plain", status_code=500)
 
 
-@app.get("/download-xlsx-yippee")
+@app.get("/api/download-xlsx-yippee")
 def download_xlsx_yippee(from_date: str = Query(...), to_date: str = Query(...)):
     try:
         # Validate range (dates are interpreted as UTC-naive, like your original)
