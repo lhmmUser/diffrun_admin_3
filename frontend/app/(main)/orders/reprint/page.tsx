@@ -516,7 +516,7 @@ export default function ReprintPage() {
       setLoadErr(null);
       setOrder(null);
       try {
-        const url = `${API_BASE}/orders/${encodeURIComponent(rawOrderId)}`;
+        const url = `${API_BASE}/api/orders/${encodeURIComponent(rawOrderId)}`;
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -988,7 +988,7 @@ export default function ReprintPage() {
 
       // 1. Save status + remarks first (same as now)
       const res = await fetch(
-        `${API_BASE}/orders/${encodeURIComponent(order.order_id)}/status`,
+        `${API_BASE}/api/orders/${encodeURIComponent(order.order_id)}/status`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
