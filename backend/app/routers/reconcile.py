@@ -25,7 +25,7 @@ from email.message import EmailMessage
 import smtplib
 
 IST_TZ = ZoneInfo("Asia/Kolkata")
-router = APIRouter(prefix="/reconcile", tags=["reconcile"])
+router = APIRouter(prefix="/api/reconcile", tags=["reconcile"])
 REPORT_TZ = ZoneInfo(os.getenv("RECONCILE_TZ", "Asia/Kolkata"))  # default IST
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -296,7 +296,7 @@ async def _vlookup_core(
     return resp  # already a dict
 
 
-@router.get("/api/vlookup-payment-to-orders/auto")
+@router.get("/vlookup-payment-to-orders/auto")
 async def vlookup_payment_to_orders_auto(
     # Payments: ALL STATUSES by default (None)
     status: Optional[str] = Query(None, description="Filter payments fetched from Razorpay by status; omit for ALL"),
