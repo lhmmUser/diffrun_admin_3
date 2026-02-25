@@ -390,7 +390,6 @@ class OrderStatusUpdatePayload(BaseModel):
     order_status: str
     order_status_remarks: str
 
-
 def require_auth(request: Request):
     token = request.cookies.get("__session")
 
@@ -405,7 +404,11 @@ def require_auth(request: Request):
             signing_key.key,
             algorithms=["RS256"],
             issuer=CLERK_ISSUER,
-            options={"verify_aud": False},
+            options={
+                "verify_aud": False,
+                "verify_exp": True
+            },
+            leeway=60  # Allow small expiration tolerance
         )
 
         return claims
@@ -413,7 +416,7 @@ def require_auth(request: Request):
     except Exception as e:
         print("JWT VERIFY FAILED:", e)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-
+    
 @app.post("/auth/sync-user")
 def sync_user(claims=Depends(require_auth)):
     user = clerk.users.get(user_id=claims["sub"])

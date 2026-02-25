@@ -1,31 +1,35 @@
-'use client';  // Add this line to mark the component as a Client Component
+'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';  // Use `next/navigation` in Server Components
 
 const LandingPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    // Check if the user is authenticated by making a request to the backend
     const checkAuth = async () => {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
 
-      if (response.ok) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
+        if (response.status === 401) {
+          return;
+        }
+
+        if (response.ok) {
+          setIsAuthenticated(true);
+        }
+
+      } catch (err) {
+        console.error("Auth check failed:", err);
       }
     };
+
     checkAuth();
   }, []);
 
   const handleSignInClick = () => {
-    // Redirect to the backend sign-in route
-    router.push('/api/sign-in');
+    window.location.href = '/api/sign-in';
   };
 
   return (
@@ -54,4 +58,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
