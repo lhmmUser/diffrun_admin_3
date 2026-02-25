@@ -122,7 +122,7 @@ async function resolveBookMeta(jobId: string | null | undefined, apiBase: string
     console.warn("[META] No job_id provided, cannot resolve book meta");
     return { book_id: undefined, book_style: undefined };
   }
-  const url = `${apiBase}/api/orders/meta/by-job/${encodeURIComponent(jobId)}`;
+  const url = `${apiBase}/orders/meta/by-job/${encodeURIComponent(jobId)}`;
   console.log("[META] GET:", url);
   try {
     const res = await fetch(url, { method: "GET" });
@@ -223,13 +223,13 @@ export default function ReconcileUploader() {
 
     (async () => {
       console.log("[DETAILS] Fetch NA payment details");
-      console.log("POST:", `${API_BASE}/api/reconcile/na-payment-details`);
+      console.log("POST:", `${API_BASE}/reconcile/na-payment-details`);
       console.log("IDs:", naIds);
       setLoadingDetails(true);
       setDetailsErr(null);
       setDetails([]);
       try {
-        const res = await fetch(`${API_BASE}/api/reconcile/na-payment-details`, {
+        const res = await fetch(`${API_BASE}/reconcile/na-payment-details`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
@@ -315,7 +315,7 @@ const autoVerify = async (d: PaymentDetail) => {
 
   try {
     // 1) Get server signature
-    const signRes = await fetch(`${API_BASE}/api/reconcile/sign-razorpay`, {
+    const signRes = await fetch(`${API_BASE}/reconcile/sign-razorpay`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ razorpay_order_id: orderId, razorpay_payment_id: pid }),
@@ -412,9 +412,9 @@ if (verifyRes.ok && verifyJson?.success) {
   // NEW: mark reconciled
   try {
     const flagPayload = { job_id: jobId, razorpay_payment_id: pid };
-    console.log("[RECONCILE FLAG] POST", `${API_BASE}/api/reconcile/mark`, "payload:", flagPayload);
+    console.log("[RECONCILE FLAG] POST", `${API_BASE}/reconcile/mark`, "payload:", flagPayload);
 
-    const flagRes = await fetch(`${API_BASE}/api/reconcile/mark`, {
+    const flagRes = await fetch(`${API_BASE}/reconcile/mark`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(flagPayload),

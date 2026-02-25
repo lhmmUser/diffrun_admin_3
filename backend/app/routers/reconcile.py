@@ -184,7 +184,7 @@ def _render_na_table(title: str, wnd_from: str, wnd_to: str, rows: list[dict]) -
 
 
 # ------------------------------ KEEP: /orders --------------------------------
-@router.get("/api/orders")
+@router.get("/orders")
 def get_orders(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_dir: Optional[str] = Query("asc", description="asc or desc"),
