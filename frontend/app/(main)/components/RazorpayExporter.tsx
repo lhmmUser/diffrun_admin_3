@@ -14,7 +14,7 @@ export default function RazorpaySimpleDownloader() {
     setErr(null);
     setLoading(true);
     try {
-      const url = new URL(`${API_BASE}/razorpay/payments-csv`);
+      const url = new URL(`${API_BASE}/api/razorpay/payments-csv`);
       if (status) url.searchParams.set("status", status);
       if (fromDate) url.searchParams.set("from_date", fromDate);
       if (toDate) url.searchParams.set("to_date", toDate);

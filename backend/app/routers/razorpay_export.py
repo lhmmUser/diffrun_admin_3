@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from dateutil import parser as dtparser
 from dotenv import load_dotenv
 
-router = APIRouter(prefix="/razorpay", tags=["razorpay"])
+router = APIRouter(prefix="/api/razorpay", tags=["razorpay"])
 
 load_dotenv()
 

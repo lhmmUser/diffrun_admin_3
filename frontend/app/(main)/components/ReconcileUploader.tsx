@@ -329,7 +329,7 @@ const autoVerify = async (d: PaymentDetail) => {
 
     // 2) Resolve discount_code from Razorpay
     console.log("[DISCOUNT] resolve for", pid);
-    const discountRes = await fetch(`${API_BASE}/razorpay/payments/by-ids`, {
+    const discountRes = await fetch(`${API_BASE}/api/razorpay/payments/by-ids`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: [pid] }),
