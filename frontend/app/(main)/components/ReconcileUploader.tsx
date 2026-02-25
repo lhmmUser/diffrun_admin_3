@@ -223,13 +223,13 @@ export default function ReconcileUploader() {
 
     (async () => {
       console.log("[DETAILS] Fetch NA payment details");
-      console.log("POST:", `${API_BASE}/reconcile/na-payment-details`);
+      console.log("POST:", `${API_BASE}/api/reconcile/na-payment-details`);
       console.log("IDs:", naIds);
       setLoadingDetails(true);
       setDetailsErr(null);
       setDetails([]);
       try {
-        const res = await fetch(`${API_BASE}/reconcile/na-payment-details`, {
+        const res = await fetch(`${API_BASE}/api/reconcile/na-payment-details`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
