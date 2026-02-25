@@ -1009,7 +1009,7 @@ export default function ReprintPage() {
       // 2. If REPRINT → redirect to reprint page
       if (actionType === "reprint") {
         router.push(
-          `/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(actionRemarks)}`
+          `/api/orders/reprint?order_id=${encodeURIComponent(order.order_id)}&reason=${encodeURIComponent(actionRemarks)}`
         );
         return; // 🚨 VERY IMPORTANT: stop here
       }
