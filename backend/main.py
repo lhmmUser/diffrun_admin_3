@@ -23,7 +23,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 from google.oauth2.service_account import Credentials as _GoogleCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 import gspread
 import json
 from decimal import Decimal
@@ -241,6 +241,61 @@ class ItemShippedPayload(CloudprinterWebhookBase):
 class UnapproveRequest(BaseModel):
     job_ids: List[str]
 
+
+class ShippingAddressUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    address1: Optional[str] = None
+    address2: Optional[str] = None
+    city:   Optional[str] = None
+    state:  Optional[str] = None
+    country: Optional[str] = None
+    zip:    Optional[str] = Field(None, alias="postal_code")
+
+
+class TimelineUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    created_at:    Optional[str] = None
+    processed_at:  Optional[str] = None
+    approved_at:   Optional[str] = None
+    print_sent_at: Optional[str] = None
+    shipped_at:    Optional[str] = None
+
+
+class OrderUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name:   Optional[str] = None
+    age:    Optional[Union[str, int]] = None
+    gender: Optional[str] = None
+    book_id:        Optional[str] = None
+    job_id:         Optional[str] = None
+    locale:        Optional[str] = None
+    book_style:     Optional[str] = None
+    discount_code:  Optional[str] = None
+    quantity:       Optional[int] = None
+    preview_url:    Optional[str] = None
+    total_price:        Optional[Union[str, float, int]] = None
+    transaction_id:     Optional[str] = None
+    paypal_capture_id:  Optional[str] = None
+    paypal_order_id:    Optional[str] = None
+    cover_url:          Optional[str] = None
+    book_url:           Optional[str] = None
+    user_name: Optional[str] = None
+    email:     Optional[EmailStr] = None
+    phone:     Optional[str] = None
+    current_status: Optional[str] = None
+    printer:   Optional[str] = None
+    shipping_address: Optional[ShippingAddressUpdate] = None
+    timeline:         Optional[TimelineUpdate] = None
+    order_id: Optional[str] = None
+    tracking_code: Optional[str] = None
+    remarks: Optional[str] = None   # ✅ ADD
+
+class OrderStatusUpdatePayload(BaseModel):
+    order_status: str
+    order_status_remarks: str
+
+class IssueOriginUpdatePayload(BaseModel):
+    issue_origin: str
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -7108,6 +7163,123 @@ def update_order_status(order_id: str, payload: OrderStatusUpdatePayload):
         response["reprint_order_id"] = updated.get("reprint_order_id")
 
     return response
+
+@app.post("/orders/{order_id}/issue-origin")
+def update_issue_origin(order_id: str, payload: IssueOriginUpdatePayload):
+    allowed = {"diffrun", "genesis", "yara", "customer"}
+
+    origin = payload.issue_origin.strip().lower()
+
+    if origin not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid issue_origin value")
+
+    now = datetime.utcnow()
+
+    update_data = {
+        "issue_origin": origin,
+        "issue_origin_updated_at": now,
+    }
+
+    updated = orders_collection.find_one_and_update(
+        {"order_id": order_id},
+        {"$set": update_data},
+        return_document=ReturnDocument.AFTER
+    )
+
+    if not updated:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    return {
+        "success": True,
+        "order_id": order_id,
+        "issue_origin": updated.get("issue_origin"),
+        "issue_origin_updated_at": updated.get("issue_origin_updated_at"),
+    }
+
+IMMUTABLE_PATHS = {
+    "saved_files",
+    "child.saved_files",
+    "child.saved_file_urls",
+    "child.child1_input_images",
+    "child.child2_input_images",
+    "child.child1_image_filenames",
+    "child.child2_image_filenames",
+    "cover_image",
+    "order.cover_image",
+}
+
+def _is_forbidden(path: str) -> bool:
+    return any(path == p or path.startswith(p + ".") for p in IMMUTABLE_PATHS)
+
+
+@app.patch("/orders/{order_id}")
+def patch_order(order_id: str, update: OrderUpdate):
+    payload = update.model_dump(exclude_unset=True, by_alias=True)
+
+    set_ops: dict[str, object] = {}
+
+    if "shipping_address" in payload and payload["shipping_address"]:
+        for sk, sv in payload["shipping_address"].items():
+            if sv is not None:
+                path = f"shipping_address.{sk}"
+                if _is_forbidden(path):
+                    raise HTTPException(
+                        status_code=400, detail=f"Field '{path}' is not editable")
+                set_ops[path] = sv
+
+    if "timeline" in payload and payload["timeline"]:
+        for tk, tv in payload["timeline"].items():
+            if tv is not None:
+                path = tk
+                if _is_forbidden(path):
+                    raise HTTPException(
+                        status_code=400, detail=f"Field '{path}' is not editable")
+                set_ops[path] = tv
+
+    field_map = {
+        "name": "name",
+        "age": "age",
+        "gender": "gender",
+        "book_id": "book_id",
+        "book_style": "book_style",
+        "discount_code": "discount_code",
+        "quantity": "quantity",
+        "preview_url": "preview_url",
+        "total_price": "total_price",
+        "transaction_id": "transaction_id",
+        "paypal_capture_id": "paypal_capture_id",
+        "paypal_order_id": "paypal_order_id",
+        "cover_url": "cover_url",
+        "book_url": "book_url",
+        "user_name": "user_name",
+        "email": "email",
+        "phone": "phone_number",
+        "current_status": "current_status",
+        "order_id": "order_id",
+        "remarks": "remarks",   # ✅ ADD
+        "tracking_code": "tracking_code"
+    }
+
+    for incoming, doc_path in field_map.items():
+        if incoming in payload and payload[incoming] is not None:
+            if _is_forbidden(doc_path):
+                raise HTTPException(
+                    status_code=400, detail=f"Field '{doc_path}' is not editable")
+            set_ops[doc_path] = payload[incoming]
+
+    if not set_ops:
+        existing = orders_collection.find_one({"order_id": order_id})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Order not found")
+        return {"updated": False, "order": _build_order_response(existing)}
+
+    res = orders_collection.update_one(
+        {"order_id": order_id}, {"$set": set_ops})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    updated = orders_collection.find_one({"order_id": order_id})
+    return {"updated": bool(res.modified_count), "order": _build_order_response(updated)}
 
 class LockRequest(BaseModel):
     # Who is locking/unlocking – you can use admin email here

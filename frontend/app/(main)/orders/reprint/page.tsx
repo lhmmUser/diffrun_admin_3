@@ -690,7 +690,7 @@ export default function ReprintPage() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/orders/${encodeURIComponent(order.order_id)}/issue-origin`,
+        `${API_BASE}/api/orders/${encodeURIComponent(order.order_id)}/issue-origin`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
