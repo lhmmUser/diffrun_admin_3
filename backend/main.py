@@ -69,7 +69,7 @@ app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Allow the frontend's origin
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://admin.diffrun.com"],  # Allow the frontend's origin
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
