@@ -7164,7 +7164,7 @@ def update_order_status(order_id: str, payload: OrderStatusUpdatePayload):
 
     return response
 
-@app.post("/orders/{order_id}/issue-origin")
+@app.post("/api/orders/{order_id}/issue-origin")
 def update_issue_origin(order_id: str, payload: IssueOriginUpdatePayload):
     allowed = {"diffrun", "genesis", "yara", "customer"}
 
