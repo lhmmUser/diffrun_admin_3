@@ -315,7 +315,7 @@ const autoVerify = async (d: PaymentDetail) => {
 
   try {
     // 1) Get server signature
-    const signRes = await fetch(`${API_BASE}/reconcile/sign-razorpay`, {
+    const signRes = await fetch(`${API_BASE}/api/reconcile/sign-razorpay`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ razorpay_order_id: orderId, razorpay_payment_id: pid }),
