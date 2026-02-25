@@ -767,7 +767,7 @@ export default function ReprintPage() {
         return;
       }
       const res = await fetch(
-        `${API_BASE}/orders/${encodeURIComponent(rawOrderId)}`,
+        `${API_BASE}/api/orders/${encodeURIComponent(rawOrderId)}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

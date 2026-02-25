@@ -7212,7 +7212,7 @@ def _is_forbidden(path: str) -> bool:
     return any(path == p or path.startswith(p + ".") for p in IMMUTABLE_PATHS)
 
 
-@app.patch("/orders/{order_id}")
+@app.patch("/api/orders/{order_id}")
 def patch_order(order_id: str, update: OrderUpdate):
     payload = update.model_dump(exclude_unset=True, by_alias=True)
 
