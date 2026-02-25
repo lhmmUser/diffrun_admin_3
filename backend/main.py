@@ -63,20 +63,10 @@ import PyPDF2
 
 load_dotenv()
 
-app = FastAPI()
-router = APIRouter()
-app.include_router(router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://admin.diffrun.com"],  # Allow the frontend's origin
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-)
 
 CLERK_ISSUER = "https://knowing-macaque-84.clerk.accounts.dev"
 CLERK_JWKS_URL = f"{CLERK_ISSUER}/.well-known/jwks.json"
+jwks_client = PyJWKClient(CLERK_JWKS_URL)
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_PUBLISHABLE_KEY = os.getenv("CLERK_PUBLISHABLE_KEY")
 RangeKey = Literal["1d", "1w", "1m", "6m", "this_month"] 
@@ -110,7 +100,6 @@ ALLOWED_EMAILS = {
     "yash@diffrun.com",
 }
 clerk = Clerk(bearer_auth=CLERK_SECRET_KEY)
-jwks = requests.get(CLERK_JWKS_URL).json()
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION = timedelta(hours=1)
 JWT_SECRET = "abc123"
@@ -381,11 +370,12 @@ app.include_router(shiprocket_router)
 origins = [
     "http://localhost:3000",  # Allow the frontend to make requests to backend
     "http://127.0.0.1:3000", # Allow requests from other local frontend URLs
+    "https://admin.diffrun.com", # Allow requests from production frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Allows frontend domains to send requests
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000","https://admin.diffrun.com"],  # Allows frontend domains to send requests
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -402,16 +392,17 @@ class OrderStatusUpdatePayload(BaseModel):
 
 
 def require_auth(request: Request):
-    token = request.cookies.get("__session") # Ensure the session token is fetched from cookies
+    token = request.cookies.get("__session")
+
     if not token:
         raise HTTPException(status_code=401, detail="Missing Clerk session")
 
     try:
-        header = jwt.get_unverified_header(token)
-        key = next(k for k in jwks["keys"] if k["kid"] == header["kid"])
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+
         claims = jwt.decode(
             token,
-            key,
+            signing_key.key,
             algorithms=["RS256"],
             issuer=CLERK_ISSUER,
             options={"verify_aud": False},
@@ -450,8 +441,6 @@ def sync_user(claims=Depends(require_auth)):
     # )
 
     return {"ok": True}
-
-
 
 
 # Route for the sign-in page (static)
