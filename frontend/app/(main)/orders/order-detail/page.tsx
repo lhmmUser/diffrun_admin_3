@@ -450,7 +450,7 @@ export default function OrderDetailPage() {
         // If it's genesis, fetch shipping doc and merge tracking/shipped_at
         if ((looksLikeGenesis || looksLikeYara) && !looksLikeCloud) {
           try {
-            const shipUrl = `${API_BASE}/shipping/${encodeURIComponent(
+            const shipUrl = `${API_BASE}/api/shipping/${encodeURIComponent(
               data.order_id
             )}`;
             // eslint-disable-next-line no-console
@@ -535,7 +535,7 @@ export default function OrderDetailPage() {
           try {
             const reprintOrderId = (data as any).reprint_order_id;
 
-            const reprintShipUrl = `${API_BASE}/shipping/${encodeURIComponent(
+            const reprintShipUrl = `${API_BASE}/api/shipping/${encodeURIComponent(
               reprintOrderId
             )}`;
 
