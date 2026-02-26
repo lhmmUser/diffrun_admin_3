@@ -391,11 +391,16 @@ class OrderStatusUpdatePayload(BaseModel):
     order_status_remarks: str
 
 
-def require_auth(request: Request):
-    token = request.cookies.get("__session")
+from fastapi import Header
 
-    if not token:
-        raise HTTPException(status_code=401, detail="Missing Clerk session")
+def require_auth(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid Authorization format")
+
+    token = authorization.split(" ")[1]
 
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)

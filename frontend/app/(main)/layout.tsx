@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HiMenu, HiX } from "react-icons/hi";
+declare global {
+  interface Window {
+    Clerk: any;
+  }
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,18 +16,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter(); // Access the Next.js router
 
   useEffect(() => {
-  fetch("/api/auth/me", {
-    credentials: "include"
-  })
-    .then(res => {
-      if (!res.ok) throw new Error()
-      return res.json()
-    })
-    .then(() => setAuthorized(true))
-    .catch(() => {
-      window.location.href = "/api/sign-in"
-    })
-}, [])
+  const checkAuth = async () => {
+    try {
+      if (!window.Clerk) {
+        window.location.href = "/api/sign-in";
+        return;
+      }
+
+      await window.Clerk.load();
+
+      if (!window.Clerk.session) {
+        window.location.href = "/api/sign-in";
+        return;
+      }
+
+      const token = await window.Clerk.session.getToken();
+
+      const res = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error();
+
+      setAuthorized(true);
+    } catch (err) {
+      window.location.href = "/api/sign-in";
+    }
+  };
+
+  checkAuth();
+}, []);
 
 
   // Do not render anything until the auth check is complete
