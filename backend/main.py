@@ -409,7 +409,6 @@ def require_auth(authorization: str = Header(None)):
             token,
             signing_key.key,
             algorithms=["RS256"],
-            issuer=CLERK_ISSUER,
             options={"verify_aud": False},
         )
 
@@ -508,7 +507,6 @@ def auth_callback():
     data-clerk-frontend-api="knowing-macaque-84.clerk.accounts.dev"
     src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js">
   </script>
-
 </head>
 <body>
 
@@ -521,7 +519,7 @@ window.addEventListener("load", async function () {{
 
   await window.Clerk.load();
 
-  // wait for session
+  // Wait for session to exist
   let retries = 0;
   while (!window.Clerk.session && retries < 50) {{
     await new Promise(r => setTimeout(r, 100));
@@ -536,9 +534,17 @@ window.addEventListener("load", async function () {{
 
   try {{
 
-    const res = await fetch(origin + "/api/auth/me", {{
-      credentials: "include"
+    const token = await window.Clerk.session.getToken();
+
+    const res = await fetch(origin + "/auth/me", {{
+      headers: {{
+        Authorization: `Bearer ${{token}}`
+      }}
     }});
+
+    if (!res.ok) {{
+      throw new Error("Auth request failed");
+    }}
 
     const data = await res.json();
 
@@ -551,7 +557,7 @@ window.addEventListener("load", async function () {{
     }}
 
   }} catch (err) {{
-    console.error(err);
+    console.error("Auth error:", err);
     window.location.replace(origin + "/unauthorized");
   }}
 

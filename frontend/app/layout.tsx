@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,14 +20,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!clerkKey) {
+    throw new Error("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not defined");
+  }
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body>
+        <Script
+          src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js"
+          strategy="beforeInteractive"
+          crossOrigin="anonymous"
+          data-clerk-publishable-key={clerkKey}
+          data-clerk-frontend-api="knowing-macaque-84.clerk.accounts.dev"
+        />
+
         {children}
       </body>
     </html>
