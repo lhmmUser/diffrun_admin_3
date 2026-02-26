@@ -3759,7 +3759,7 @@ def get_shipping_level(country_code: str) -> str:
     return "cp_ground"  # default fallback
 
 
-@app.post("/api//orders/approve-printing")
+@app.post("/api/orders/approve-printing")
 async def approve_printing(payload: BulkPrintRequest, background_tasks: BackgroundTasks):
     order_ids = payload.order_ids
     print_sent_by = payload.print_sent_by

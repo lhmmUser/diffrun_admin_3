@@ -693,7 +693,7 @@ export default function OrdersView({
           "[APPROVE] Refetching orders with params:",
           params.toString()
         );
-        const ordersRes = await fetch(`${baseUrl}/orders?${params.toString()}`);
+        const ordersRes = await fetch(`${baseUrl}/api/orders?${params.toString()}`);
         console.log(
           "[APPROVE] orders GET status:",
           ordersRes.status,
