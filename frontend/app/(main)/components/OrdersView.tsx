@@ -638,12 +638,11 @@ export default function OrdersView({
             step: "queued",
           }))
         );
-        const token = await window.Clerk.session.getToken();
+        
         const response = await fetch(`${baseUrl}/api/orders/approve-printing`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             order_ids: selectedOrderIds,
