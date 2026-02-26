@@ -536,7 +536,7 @@ window.addEventListener("load", async function () {{
 
     const token = await window.Clerk.session.getToken();
 
-    const res = await fetch(origin + "/auth/me", {{
+    const res = await fetch(origin + "/api/auth/me", {{
       headers: {{
         Authorization: `Bearer ${{token}}`
       }}
