@@ -395,11 +395,14 @@ export default function ReprintPage() {
       alert("Reprint Order ID not found");
       return;
     }
-
+    const token = await window.Clerk.session.getToken();
     try {
       const res = await fetch(`${API_BASE}/api/orders/send-to-google-sheet`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           order_ids: [reprintOrderId],
           print_sent_by: clerkEmail,
@@ -414,7 +417,9 @@ export default function ReprintPage() {
       // trigger shiprocket
       await fetch(`${API_BASE}/api/shiprocket/create-from-orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+         },
         body: JSON.stringify({
           order_ids: [reprintOrderId],
           request_pickup: true,
@@ -434,11 +439,14 @@ export default function ReprintPage() {
       alert("Reprint Order ID not found");
       return;
     }
-
+    const token = await window.Clerk.session.getToken();
     try {
       const res = await fetch(`${API_BASE}/api/orders/send-to-yara`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           order_ids: [reprintOrderId],
           print_sent_by: clerkEmail,
@@ -453,7 +461,10 @@ export default function ReprintPage() {
       // trigger shiprocket
       await fetch(`${API_BASE}/api/shiprocket/create-from-orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           order_ids: [reprintOrderId],
           request_pickup: true,
@@ -750,11 +761,12 @@ export default function ReprintPage() {
     delete (out as any).cover_image;
     return out;
   };
-
+  
   const save = async () => {
     if (!rawOrderId || !form) return;
     setSaving(true);
     setSaveErr(null);
+    const token = await window.Clerk.session.getToken();
     try {
       const payload = buildPayload();
       delete (payload as any).child;
@@ -770,7 +782,7 @@ export default function ReprintPage() {
         `${API_BASE}/api/orders/${encodeURIComponent(rawOrderId)}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" , Authorization: `Bearer ${token}`},
           body: JSON.stringify(payload),
         }
       );
@@ -930,13 +942,16 @@ export default function ReprintPage() {
     } else {
       payload.child1_name = c1;
     }
-
+    const token = await window.Clerk.session.getToken();
     try {
       const res = await fetch(
         `https://test-backend.diffrun.com/api/trigger-regen-all`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify(payload),
         }
       );
@@ -987,11 +1002,15 @@ export default function ReprintPage() {
                 : "";
 
       // 1. Save status + remarks first (same as now)
+      const token = await window.Clerk.session.getToken();
       const res = await fetch(
         `${API_BASE}/api/orders/${encodeURIComponent(order.order_id)}/status`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({
             order_status: newStatus,
             order_status_remarks: actionRemarks,

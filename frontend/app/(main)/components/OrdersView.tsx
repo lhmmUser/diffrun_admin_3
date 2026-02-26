@@ -113,13 +113,13 @@ export default function OrdersView({
   const [detailError, setDetailError] = useState<string | null>(null);
   const [form, setForm] = useState<any>(null);
   // ✅ Get the logged-in Clerk user
-//   const { user } = useUser();
+  //   const { user } = useUser();
 
   // Safely read email
-//   const adminEmail =
-//     user?.primaryEmailAddress?.emailAddress ||
-//     user?.emailAddresses?.[0]?.emailAddress ||
-//     null;
+  //   const adminEmail =
+  //     user?.primaryEmailAddress?.emailAddress ||
+  //     user?.emailAddresses?.[0]?.emailAddress ||
+  //     null;
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -203,30 +203,30 @@ export default function OrdersView({
   }, [detailOrder]);
 
   useEffect(() => {
-  const fetchAdmin = async () => {
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
+    const fetchAdmin = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-      if (!res.ok) {
-        console.error("Auth failed");
-        return;
+        if (!res.ok) {
+          console.error("Auth failed");
+          return;
+        }
+
+        const data = await res.json();
+
+        setAdminEmail(data.email);
+
+        console.log("Admin email:", data.email);
+
+      } catch (err) {
+        console.error("Failed to fetch admin:", err);
       }
+    };
 
-      const data = await res.json();
-
-      setAdminEmail(data.email);
-
-      console.log("Admin email:", data.email);
-
-    } catch (err) {
-      console.error("Failed to fetch admin:", err);
-    }
-  };
-
-  fetchAdmin();
-}, []);
+    fetchAdmin();
+  }, []);
 
   const updateForm = (path: string, value: any) => {
     setForm((prev: any) => {
@@ -287,6 +287,7 @@ export default function OrdersView({
     if (!orderIdInUrl || !form) return;
     setSaving(true);
     setSaveError(null);
+    const token = await window.Clerk.session.getToken();
     try {
       const payload = buildPayload();
       if (Object.keys(payload).length === 0) {
@@ -298,7 +299,10 @@ export default function OrdersView({
         `${baseUrl}/api/orders_api/${encodeURIComponent(orderIdInUrl)}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify(payload),
         }
       );
@@ -634,10 +638,13 @@ export default function OrdersView({
             step: "queued",
           }))
         );
-
+        const token = await window.Clerk.session.getToken();
         const response = await fetch(`${baseUrl}/api/orders/approve-printing`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({
             order_ids: selectedOrderIds,
             print_sent_by: adminEmail,
@@ -791,61 +798,64 @@ export default function OrdersView({
 
         const trySend = async (): Promise<Response> => {
 
-  const url = `${baseUrl}/api/orders/send-to-google-sheet`;
+          const url = `${baseUrl}/api/orders/send-to-google-sheet`;
 
-  console.log("[GENESIS] POST", url, "body:", selectedOrderIds);
+          console.log("[GENESIS] POST", url, "body:", selectedOrderIds);
+          const token = await window.Clerk.session.getToken();
 
-  let res = await fetch(url, {
-    method: "POST",
+          let res = await fetch(url, {
+            method: "POST",
 
-    credentials: "include",   // ⭐ REQUIRED FOR CLERK AUTH
+            credentials: "include",   // ⭐ REQUIRED FOR CLERK AUTH
 
-    headers: {
-      "Content-Type": "application/json"
-    },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
 
-    body: JSON.stringify({
-      order_ids: selectedOrderIds,
-      print_sent_by: adminEmail,
-    }),
-  });
+            body: JSON.stringify({
+              order_ids: selectedOrderIds,
+              print_sent_by: adminEmail,
+            }),
+          });
 
-  console.log(
-    "[GENESIS] First attempt status:",
-    res.status,
-    res.statusText
-  );
+          console.log(
+            "[GENESIS] First attempt status:",
+            res.status,
+            res.statusText
+          );
 
-  if (res.status === 422) {
+          if (res.status === 422) {
 
-    console.warn(
-      "[GENESIS] 422 retrying"
-    );
+            console.warn(
+              "[GENESIS] 422 retrying"
+            );
 
-    res = await fetch(url, {
-      method: "POST",
+            res = await fetch(url, {
+              method: "POST",
 
-      credentials: "include",   // ⭐ REQUIRED HERE ALSO
+              credentials: "include",   // ⭐ REQUIRED HERE ALSO
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
 
-      body: JSON.stringify({
-        order_ids: selectedOrderIds,
-        print_sent_by: adminEmail,
-      }),
-    });
+              body: JSON.stringify({
+                order_ids: selectedOrderIds,
+                print_sent_by: adminEmail,
+              }),
+            });
 
-    console.log(
-      "[GENESIS] Second attempt status:",
-      res.status,
-      res.statusText
-    );
-  }
+            console.log(
+              "[GENESIS] Second attempt status:",
+              res.status,
+              res.statusText
+            );
+          }
 
-  return res;
-};
+          return res;
+        };
 
 
         const response = await trySend();
@@ -880,12 +890,15 @@ export default function OrdersView({
             request_pickup: true,
           };
           console.log("[SHIPROCKET] POST payload:", srPayload);
-
+          const token = await window.Clerk.session.getToken();
           const srRes = await fetch(
             `${baseUrl}/api/shiprocket/create-from-orders`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
               body: JSON.stringify(srPayload),
             }
           );
@@ -1068,10 +1081,12 @@ export default function OrdersView({
         const trySend = async (): Promise<Response> => {
           const url = `${baseUrl}/api/orders/send-to-yara`;
           console.log("[YARA] POST", url, "body:", selectedOrderIds);
-
+          const token = await window.Clerk.session.getToken();
           let res = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+             },
             body: JSON.stringify({
               order_ids: selectedOrderIds,
               print_sent_by: adminEmail,
@@ -1090,7 +1105,8 @@ export default function OrdersView({
             );
             res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", 
+                Authorization: `Bearer ${token}` },
               body: JSON.stringify({
                 order_ids: selectedOrderIds,
                 print_sent_by: adminEmail,
@@ -1141,12 +1157,14 @@ export default function OrdersView({
             request_pickup: true,
           };
           console.log("[SHIPROCKET] POST payload:", srPayload);
-
+          const token = await window.Clerk.session.getToken();
           const srRes = await fetch(
             `${baseUrl}/api/shiprocket/create-from-orders`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+               },
               body: JSON.stringify(srPayload),
             }
           );
@@ -1348,10 +1366,13 @@ export default function OrdersView({
           .filter(Boolean);
 
         console.log("[UNAPPROVE] job_ids:", selectedJobIds);
-
+        const token = await window.Clerk.session.getToken();
         const response = await fetch(`${baseUrl}/api/orders/unapprove`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({ job_ids: selectedJobIds }),
         });
 
@@ -1387,7 +1408,7 @@ export default function OrdersView({
           "to:",
           status
         );
-
+        const token = await window.Clerk.session.getToken();
         const results = await Promise.allSettled(
           orderIds.map(async (orderId) => {
             const res = await fetch(
@@ -1396,7 +1417,10 @@ export default function OrdersView({
               )}`,
               {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify({ status }),
               }
             );
@@ -1438,9 +1462,13 @@ export default function OrdersView({
       const [orderId] = Array.from(selectedOrders);
 
       try {
+        const token = await window.Clerk.session.getToken();
         const res = await fetch(`${baseUrl}/api/orders/lock`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({
             order_id: orderId,
             // TODO: replace with real logged-in email later
@@ -1472,11 +1500,14 @@ export default function OrdersView({
       }
 
       const [orderId] = Array.from(selectedOrders);
-
+      const token = await window.Clerk.session.getToken();
       try {
         const res = await fetch(`${baseUrl}/api/orders/unlock`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({
             order_id: orderId,
             // TODO: replace with real logged-in email later
