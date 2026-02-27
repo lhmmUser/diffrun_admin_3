@@ -149,6 +149,7 @@ def _send_tracking_email(to_email: str,
                   <ul>
                     <li><strong>Order:</strong> {order_ref}</li>
                     <li><strong>Tracking:</strong> {tracking}</li>
+                    <li><strong>Courier name:</strong> {shipping_option}</li>
                   </ul>
 
                   {track_button_html}
