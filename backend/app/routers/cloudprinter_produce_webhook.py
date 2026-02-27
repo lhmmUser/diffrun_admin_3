@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 router = APIRouter()
 security = HTTPBasic(auto_error=False)
-
+#used cloudprinter_webhook_key_produce to separate from test webhooks for easier rotation and security practices. Rotate as needed and update the .env file accordingly.
 WEBHOOK_KEY = (os.getenv("CLOUDPRINTER_WEBHOOK_KEY_PRODUCE") or "").strip()
 BASIC_USER  = (os.getenv("CP_WEBHOOK_USER") or "").strip()
 BASIC_PASS  = (os.getenv("CP_WEBHOOK_PASS") or "").strip()
