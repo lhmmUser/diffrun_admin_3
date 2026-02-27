@@ -3425,6 +3425,37 @@ async def send_to_google_sheet(
             })
 
             continue
+        
+        # ✅ send production email ONCE (idempotent)
+        once = orders_collection.update_one(
+            {"order_id": order_id, "$or": [
+                {"production_email_sent": {"$exists": False}},
+                {"production_email_sent": False}
+            ]},
+            {"$set": {"production_email_sent": True}}
+        )
+
+        if once.modified_count == 1:
+            to_email = (order.get("customer_email")
+                        or order.get("email") or "").strip()
+            display_name = order.get("user_name") or "there"
+            child_name = order.get("name") or "Your"
+            job_id = order.get("job_id")
+
+            if to_email and EMAIL_USER and EMAIL_PASS:
+                background_tasks.add_task(
+                    _send_production_email,
+                    to_email,
+                    display_name,
+                    child_name,
+                    job_id,
+                    order_id
+                )
+                print(f"[EMAIL] queued production email to {to_email} for {order_id}")
+            else:
+                print(f"[EMAIL] skipped (missing recipient or creds) for {order_id}")
+        else:
+            print(f"[EMAIL] already sent for {order_id}, skipping")
 
         order_copy = dict(order)
         order_copy["order_id"] = order_id
@@ -3708,6 +3739,37 @@ async def send_to_yara(payload: BulkPrintRequest, background_tasks: BackgroundTa
                 "step": "idempotency_check"
             })
             continue
+        
+        # ✅ send production email ONCE (idempotent)
+        once = orders_collection.update_one(
+            {"order_id": order_id, "$or": [
+                {"production_email_sent": {"$exists": False}},
+                {"production_email_sent": False}
+            ]},
+            {"$set": {"production_email_sent": True}}
+        )
+
+        if once.modified_count == 1:
+            to_email = (order.get("customer_email")
+                        or order.get("email") or "").strip()
+            display_name = order.get("user_name") or "there"
+            child_name = order.get("name") or "Your"
+            job_id = order.get("job_id")
+
+            if to_email and EMAIL_USER and EMAIL_PASS:
+                background_tasks.add_task(
+                    _send_production_email,
+                    to_email,
+                    display_name,
+                    child_name,
+                    job_id,
+                    order_id
+                )
+                print(f"[EMAIL] queued production email to {to_email} for {order_id}")
+            else:
+                print(f"[EMAIL] skipped (missing recipient or creds) for {order_id}")
+        else:
+            print(f"[EMAIL] already sent for {order_id}, skipping")
 
         # Build the row and schedule background tasks
         order_copy = dict(order)
