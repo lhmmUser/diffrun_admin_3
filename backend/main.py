@@ -3455,6 +3455,282 @@ async def send_to_google_sheet(
 
     return results
 
+def order_to_sheet_row_yara(order: dict) -> list:
+    """
+    Build a sheet row that leaves column A empty and safely converts datetimes.
+    Column mapping (B -> K) as requested in your screenshot.
+    """
+    diffrun_order_id = _to_safe_value(order.get("order_id", ""))
+
+    # choose the created/ordered time field from your schema
+    # current IST time for Google-Sheets entry (safe and independent)
+    IST_1 = ZoneInfo("Asia/Kolkata")
+    now_ist = datetime.now(IST_1)
+    order_date = now_ist.strftime("%d %b, %H:%M")
+
+    child_name = _to_safe_value(order.get("name") or "")
+    book_style = _to_safe_value(order.get("book_style") or "")
+    book_id = _to_safe_value(order.get("book_id") or "")
+
+    shipping = order.get("shipping_address") or {}
+    city = _to_safe_value(shipping.get("city") or "")
+
+    address_parts = [
+        shipping.get("name") or "",
+        shipping.get("address1") or "",
+        shipping.get("address2") or "",
+        shipping.get("city") or "",
+        shipping.get("province") or "",
+        shipping.get("country") or "",
+        shipping.get("zip") or ""
+    ]
+    # join non-empty parts with comma (or use "\n" for line breaks)
+    address = "\n".join([p for p in address_parts if p])
+    address = _to_safe_value(address)
+
+    phone = _to_safe_value(shipping.get("phone") or order.get(
+        "phone_number") or order.get("customer_phone") or "")
+
+    quantity = int(order.get("quantity", 1) or 1)
+
+    cover_url = order.get("cover_url") or order.get("coverpage_url") or ""
+    interior_url = order.get("book_url") or order.get("interior_pdf") or ""
+
+    cover_link_formula = f'=HYPERLINK("{_to_safe_value(cover_url)}","View")' if cover_url else ""
+    interior_link_formula = f'=HYPERLINK("{_to_safe_value(interior_url)}","View PDF")' if interior_url else ""
+
+    logged_at = _to_safe_value(datetime.utcnow())
+
+    row = [
+        "",                        # A: intentionally blank
+        diffrun_order_id,          # B
+        order_date,                # C
+        child_name,                # D
+        book_style,                # E
+        book_id,                   # F
+        city,                      # G
+        address,                   # H
+        phone,                     # I
+        cover_link_formula,        # J
+        interior_link_formula,      # K
+        quantity,            # L
+    ]
+
+    # ensure every element is a primitive (str/int/float/bool)
+    row = [_to_safe_value(x) for x in row]
+    return row
+
+    """
+    Upsert into MongoDB using:
+      - sheet-mirrored fields from `row`
+      - extra fields (user_name, email) directly from `order` (NOT written to sheet)
+    """
+    try:
+        cover_link_raw = _extract_url_from_formula(row[9])
+        interior_link_raw = _extract_url_from_formula(row[10])
+
+        # Pick keys that exist in YOUR payload. These fallbacks are safe:
+        user_name = (
+            order.get("user_name")
+            or order.get("customer_name")
+            or (order.get("shipping_address") or {}).get("name")
+            or order.get("name")
+            or ""
+        )
+        email = (
+            order.get("email")
+            or order.get("customer_email")
+            or (order.get("shipping_address") or {}).get("email")
+            or ""
+        )
+
+        doc = {
+            "order_id": row[1],
+            "order_date": row[2],
+            "child_name": row[3],
+            "book_style": row[4],
+            "book_id": row[5],
+            "city": row[6],
+            "address": row[7],
+            "phone": row[8],
+            "cover_link": cover_link_raw,
+            "interior_link": interior_link_raw,
+            "quantity": row[11],
+
+            # Mongo-only additions:
+            "user_name": user_name,
+            "email": email,
+
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        shipping_collection.update_one(
+            {"order_id": doc["order_id"]},
+            {"$set": doc, "$setOnInsert": {
+                "created_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True,
+        )
+
+        print(f"[MONGO] upserted shipping_details for order {row[1]}")
+    except Exception as exc:
+        print(
+            f"[MONGO][ERROR] failed to upsert shipping_details for order {row[1]}: {exc}")
+
+def append_row_to_google_sheet_yara(row: list):
+    try:
+        client = get_gspread_client_yara()
+        sh = client.open_by_key(SPREADSHEET_ID_YARA)
+        worksheet = sh.worksheet(WORKSHEET_NAME_YARA)
+
+        _ensure_quantity_header(worksheet)
+
+        # use configured option (fallback to USER_ENTERED)
+        option = VALUE_INPUT_OPTION_YARA or "USER_ENTERED"
+        worksheet.insert_row(row, index=2, value_input_option=option)
+        print(
+            f"[SHEETS][YARA] appended row for order {row[1]} to worksheet {WORKSHEET_NAME_YARA}")
+    except Exception as exc:
+        print(
+            f"[SHEETS][YARA][ERROR] failed to append row for order {row[1]}: {exc}")
+
+@app.post("/api/orders/send-to-yara")
+async def send_to_yara(payload: BulkPrintRequest, background_tasks: BackgroundTasks,claims=Depends(require_auth),):
+    print(claims)
+    
+    # ✅ NEW AUTH METHOD — session based
+    admin_email = claims.get("email")
+    print("Admin email from claims:", admin_email)
+    user_id = claims.get("sub")
+    print("User ID from claims:", user_id)
+    if not user_id:
+        raise HTTPException(401, "Invalid session")
+
+    # Fetch full user from Clerk
+    try:
+        user = clerk.users.get(user_id=user_id)
+    except Exception as e:
+        print("Clerk fetch error:", e)
+        raise HTTPException(401, "Failed to fetch user")
+
+    # Extract primary email
+    admin_email = None
+
+    for e in user.email_addresses:
+        if e.id == user.primary_email_address_id:
+            admin_email = e.email_address
+            break
+
+    # fallback
+    if not admin_email and user.email_addresses:
+        admin_email = user.email_addresses[0].email_address
+
+    if not admin_email:
+        raise HTTPException(401, "Email not found")
+
+    admin_email = admin_email.lower().strip()
+
+    print("ADMIN EMAIL:", admin_email)
+
+    # Check allowed admins
+    if admin_email not in {e.lower() for e in ALLOWED_EMAILS}:
+        raise HTTPException(403, "Unauthorized admin")
+
+    order_ids = payload.order_ids
+    print_sent_by = admin_email   # ✅ DO NOT trust frontend email
+
+    # Ensure the Yara spreadsheet id is configured
+    if not SPREADSHEET_ID_YARA:
+        raise HTTPException(
+            status_code=500, detail="GOOGLE_SHEET_ID_YARA is not configured")
+
+    # 1) De-duplicate IDs within this request (preserve order)
+    seen = set()
+    unique_order_ids = []
+    for oid in order_ids:
+        if oid not in seen:
+            seen.add(oid)
+            unique_order_ids.append(oid)
+
+    results = []
+    for order_id in unique_order_ids:
+        print(f"[SHEETS][YARA] Processing order ID: {order_id}")
+        order = find_order_by_any_id(order_id)
+
+        if not order:
+            print(f"[SHEETS][YARA] Order not found: {order_id}")
+            results.append({
+                "order_id": order_id,
+                "status": "error",
+                "message": "Order not found",
+                "step": "database_lookup"
+            })
+            continue
+
+        # ATOMIC LOCK: mark as queued only if not already queued (Yara-specific flags)
+        reprint_key = extract_reprint_key(order_id)
+
+        if reprint_key:
+            # REPRINT FLOW
+            lock_filter = {
+                "_id": order["_id"],
+                f"reprint_meta.{reprint_key}.sheet_queued": {"$ne": True}
+            }
+
+            lock_update = {
+                "$set": {
+                    f"reprint_meta.{reprint_key}.sheet_queued": True,
+                    f"reprint_meta.{reprint_key}.printer": "Yara",
+                    f"reprint_meta.{reprint_key}.print_status": "sent_to_yara",
+                    f"reprint_meta.{reprint_key}.print_sent_at": datetime.now().isoformat(),
+                    f"reprint_meta.{reprint_key}.print_sent_by": print_sent_by,
+                }
+            }
+        else:
+            # ORIGINAL FLOW (unchanged)
+            lock_filter = {"_id": order["_id"], "sheet_queued": {"$ne": True}}
+            lock_update = {
+                "$set": {
+                    "sheet_queued": True,
+                    "printer": "Yara",
+                    "print_status": "sent_to_yara",
+                    "print_sent_at": datetime.now().isoformat(),
+                    "print_sent_by": print_sent_by,
+                }
+            }
+
+        lock_result = orders_collection.update_one(lock_filter, lock_update)
+
+        if lock_result.modified_count == 0:
+            results.append({
+                "order_id": order_id,
+                "status": "skipped",
+                "message": "Already queued previously; not sending again",
+                "step": "idempotency_check"
+            })
+            continue
+
+        # Build the row and schedule background tasks
+        order_copy = dict(order)
+        order_copy["order_id"] = order_id
+
+        row = order_to_sheet_row_yara(order_copy)
+
+        background_tasks.add_task(append_shipping_details, row, order, "Yara")
+        quantity = int(order.get("quantity", 1) or 1)
+        quantity = max(1, quantity)
+        for _ in range(quantity):
+            background_tasks.add_task(append_row_to_google_sheet_yara, row)
+
+        results.append({
+            "order_id": order_id,
+            "status": "queued",
+            "message": "Queued for Yara sheet append",
+            "step": "queued"
+        })
+
+    return results
+
+
 @app.get("/api/orders/reprint")
 async def serve_order_detail():
     # Manually serve the order-detail.html file from the out directory
