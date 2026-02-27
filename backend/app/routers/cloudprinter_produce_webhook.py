@@ -7,7 +7,7 @@ from pydantic import BaseModel
 router = APIRouter()
 security = HTTPBasic(auto_error=False)
 
-WEBHOOK_KEY = (os.getenv("CLOUDPRINTER_WEBHOOK_KEY") or "").strip()
+WEBHOOK_KEY = (os.getenv("CLOUDPRINTER_WEBHOOK_KEY_PRODUCE") or "").strip()
 BASIC_USER  = (os.getenv("CP_WEBHOOK_USER") or "").strip()
 BASIC_PASS  = (os.getenv("CP_WEBHOOK_PASS") or "").strip()
 EMAIL_USER  = (os.getenv("EMAIL_ADDRESS") or "").strip()
