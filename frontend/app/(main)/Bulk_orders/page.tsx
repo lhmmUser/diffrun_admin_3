@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import PrintProgress from "./PrintProgress";
+import PrintProgress from "../components/PrintProgress";
 import { useRouter, useSearchParams } from "next/navigation";
 // import { useUser, useAuth } from "@clerk/nextjs"; // add this import
 
@@ -85,7 +85,7 @@ export default function OrdersView({
   defaultDiscountCode = "all",
   hideDiscountFilter = false,
   title = "Orders",
-  excludeTestDiscount,
+  excludeTestDiscount = true,
 }: OrdersViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -366,7 +366,27 @@ export default function OrdersView({
       if (excludeTestDiscount) {
         params.append("exclude_discount_code", "TEST");
         params.append("exclude_discount_code", "REJECTED");
-        params.append("exclude_discount_code", "TINA");
+        params.append("exclude_discount_code", "PERKY15");
+        params.append("exclude_discount_code", "SUBSCRIBER10");
+        params.append("exclude_discount_code", "COLLAB");
+        params.append("exclude_discount_code", "MISCHIEF15");
+        params.append("exclude_discount_code", "TROLLEY15");
+        params.append("exclude_discount_code", "SPECIAL15");
+        params.append("exclude_discount_code", "LHMM");
+        params.append("exclude_discount_code", "LEMON20");
+        params.append("exclude_discount_code", "PWF20");
+        params.append("exclude_discount_code", "JESSICA15");
+        params.append("exclude_discount_code", "TANVI15");
+        params.append("exclude_discount_code", "AKMEMON15");
+        params.append("exclude_discount_code", "MRSNAMBIAR15");
+        params.append("exclude_discount_code", "SAM5");
+        params.append("exclude_discount_code", "SUKHKARMAN5");
+        params.append("exclude_discount_code", "XLRI");
+        params.append("exclude_discount_code", "NITJSR");
+        params.append("exclude_discount_code", "FNF"); 
+        params.append("exclude_discount_code", "DERIN");
+        params.append("exclude_discount_code", "WELCOME5");
+        params.append("discount_not_empty", "true");
       }
       params.append("page", currentPage.toString());
       params.append("limit", ordersPerPage.toString());

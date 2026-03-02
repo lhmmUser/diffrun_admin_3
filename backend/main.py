@@ -2286,6 +2286,7 @@ def get_orders(
     filter_print_approval: Optional[str] = Query(None),
     filter_discount_code: Optional[str] = Query(None),
     exclude_discount_code: Optional[List[str]] = Query(None),
+    discount_not_empty: Optional[bool] = Query(False),
     q: Optional[str] = Query(
         None, description="Search by job_id, order_id, email, name, discount_code, city, locale, book_id"),
     page: int = Query(1, ge=1),
@@ -2337,6 +2338,14 @@ def get_orders(
             query["discount_code"] = exclude_cond["discount_code"]
         else:
             query["$and"] = [{"discount_code": existing}, exclude_cond]
+
+    # Optional: remove empty discount codes (only if frontend asks)
+    if discount_not_empty:
+        query.setdefault("$and", []).append({
+            "discount_code": {
+                "$nin": ["", None]
+            }
+        })
 
     # --- Extended free-text search ---
     if q:
@@ -4922,7 +4931,7 @@ def stats_order_status(
     WITH cancelled, rejected, refunded, reprint
     """
 
-    exclude_codes = ["TEST", "COLLAB", "REJECTED"]
+    exclude_codes = ["TEST", "COLLAB", "REJECTED", "TINA"]
     exclude_set = {c.upper() for c in exclude_codes}
 
     # --------------------------------------------------
@@ -6455,6 +6464,9 @@ def debug_run_reconcile_now():
     _hourly_reconcile_and_email()
     return {"ok": True}
 
+EXCLUDE_CODES = ["TEST", "REJECTED", "TINA"]
+EXCLUDE_SET = {c.upper() for c in EXCLUDE_CODES}
+
 @app.get("/api/stats/sla-cohorts") #Delivery vs Undelivered in 8 days
 def stats_sla_cohorts(
     start_date: str = Query(..., description="YYYY-MM-DD (processed_at cohort)"),
@@ -6478,7 +6490,22 @@ def stats_sla_cohorts(
             {"processed_at": {"$gte": start_utc, "$lt": end_utc}},
             {"printer": {"$in": ["Genesis", "Yara"]}},
             {"order_id": {"$regex": r"^#\d+(_\d+)?$"}},
-
+            {
+                "$or": [
+                    {"discount_code": {"$exists": False}},
+                    {"discount_code": None},
+                    {
+                        "$expr": {
+                            "$not": {
+                                "$in": [
+                                    {"$toUpper": "$discount_code"},
+                                    EXCLUDE_CODES
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
             {
                 "$or": [
                     {"current_status": {"$exists": False}},
@@ -6615,7 +6642,22 @@ def delivery_latency_cohorts(
             {"processed_at": {"$gte": start_utc, "$lt": end_utc}},
             {"printer": {"$in": ["Genesis", "Yara"]}},
             {"order_id": {"$regex": r"^#\d+(_\d+)?$"}},
-
+            {
+                "$or": [
+                    {"discount_code": {"$exists": False}},
+                    {"discount_code": None},
+                    {
+                        "$expr": {
+                            "$not": {
+                                "$in": [
+                                    {"$toUpper": "$discount_code"},
+                                    EXCLUDE_CODES
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
             {
                 "$or": [
                     {"current_status": {"$exists": False}},
@@ -6945,7 +6987,22 @@ def stats_sla_summary(
             {"processed_at": {"$gte": start_utc, "$lt": end_utc}},
             {"printer": {"$in": ["Genesis", "Yara"]}},
             {"order_id": {"$regex": r"^#\d+(_\d+)?$"}},
-
+            {
+                "$or": [
+                    {"discount_code": {"$exists": False}},
+                    {"discount_code": None},
+                    {
+                        "$expr": {
+                            "$not": {
+                                "$in": [
+                                    {"$toUpper": "$discount_code"},
+                                    EXCLUDE_CODES
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
             {
                 "$or": [
                     {"current_status": {"$exists": False}},
@@ -7003,7 +7060,22 @@ def production_kpis():
             {"paid": True},
             {"printer": {"$in": ["Genesis", "Yara"]}},
             {"order_id": {"$regex": r"^#\d+(_\d+)?$"}},
-
+            {
+                "$or": [
+                    {"discount_code": {"$exists": False}},
+                    {"discount_code": None},
+                    {
+                        "$expr": {
+                            "$not": {
+                                "$in": [
+                                    {"$toUpper": "$discount_code"},
+                                    EXCLUDE_CODES
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
             {
                 "$or": [
                     {"current_status": {"$exists": False}},
@@ -7183,7 +7255,7 @@ def stats_ship_status_v2(
     Adds pending_age_chart with order_ids for NO-status orders
     """
 
-    exclude_codes = ["TEST", "COLLAB", "REJECTED"]
+    exclude_codes = ["TEST", "COLLAB", "REJECTED", "TINA"]
     exclude_set = {c.upper() for c in exclude_codes}
 
     # --------------------------------------------------
@@ -7887,6 +7959,16 @@ async def serve_shipment_orders():
     else:
         return {"message": "Frontend Shipment_orders.html not found."}
 
+@app.get("/Bulk_orders")
+async def serve_bulk_orders():
+    # Manually serve the Bulk_orders.html file from the out directory
+    orders_path = "../frontend/out/Bulk_orders.html"
+    if os.path.exists(orders_path):
+        with open(orders_path, "r") as f:
+            return HTMLResponse(content=f.read(), status_code=200)
+    else:
+        return {"message": "Frontend Bulk_orders.html not found."}
+    
 
 @app.get("/unauthorized")
 async def serve_unauthorized():
@@ -7897,7 +7979,7 @@ async def serve_unauthorized():
             return HTMLResponse(content=f.read(), status_code=200)
     else:
         return {"message": "Frontend unauthorized.html not found."}
-   
+
 
 # Serve all files from the Next.js export folder (out/)
 app.mount("/", StaticFiles(directory="../frontend/out", html=True), name="static")

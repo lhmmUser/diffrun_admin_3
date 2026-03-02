@@ -117,6 +117,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <li>
                   <Link href="/Shipment_KPI" className="block px-3 py-2 rounded hover:bg-gray-800 hover:text-blue-300 font-medium">Fulfillment KPIs</Link>
                 </li>
+                <li>
+                  <Link href="/Bulk_orders" className="block px-3 py-2 rounded hover:bg-gray-800 hover:text-blue-300 font-medium">Bulk Orders</Link>
+                </li>
               </ul>
           </nav>
         </aside>
