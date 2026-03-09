@@ -1925,8 +1925,7 @@ def stats_orders(
     end_date: Optional[str] = Query(
         None, description="YYYY-MM-DD (only when using custom)"),
     exclude_codes: List[str] = Query(["TEST", "COLLAB", "REJECTED"]),
-    loc: str = Query(
-        "IN", description="Country code; IN includes empty/missing"),
+    loc: List[str] = Query(["IN"], description="Country codes")
 ):
     now_utc = datetime.now(tz=UTC)
     if start_date and end_date:
@@ -1941,7 +1940,7 @@ def stats_orders(
     prev_labels = _labels_for(
         "1d" if gran == "hour" else range, prev_start_utc, prev_end_utc)
 
-    loc_match = _build_loc_match(loc)
+    loc_match = {"$or": [_build_loc_match(l) for l in loc]}
 
     curr_map = _fetch_counts(
         orders_collection, curr_start_utc, curr_end_utc,  exclude_codes, gran, loc_match)
@@ -1964,8 +1963,7 @@ def stats_revenue(
     range: RangeKey = Query("1w"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    loc: str = Query(
-        "IN", description="Country code; IN includes empty/missing"),
+    loc: List[str] = Query(["IN"])
 ):
     now_utc = datetime.now(tz=UTC)
     if start_date and end_date:
@@ -1976,7 +1974,7 @@ def stats_revenue(
     labels = _labels_for("1d" if gran == "hour" else range, cs, ce)
     prev_labels = _labels_for("1d" if gran == "hour" else range, ps, pe)
 
-    loc_match = _build_loc_match(loc)
+    loc_match = {"$or": [_build_loc_match(l) for l in loc]}
 
     rev_curr = _fetch_revenue_per_bucket(
         orders_collection, cs, ce, gran, loc_match)
@@ -2206,8 +2204,7 @@ def stats_preview_vs_orders(
     range: RangeKey = Query("1w"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    loc: str = Query(
-        "IN", description="Country code; IN includes empty/missing"),
+    loc: List[str] = Query(["IN"])
 ):
     now_utc = datetime.now(tz=UTC)
     if start_date and end_date:
@@ -2218,7 +2215,7 @@ def stats_preview_vs_orders(
     labels = _labels_for("1d" if gran == "hour" else range, cs, ce)
     prev_labels = _labels_for("1d" if gran == "hour" else range, ps, pe)
 
-    loc_match = _build_loc_match(loc)
+    loc_match = {"$or": [_build_loc_match(l) for l in loc]}
 
     jobs_map_curr = _fetch_jobs_created_with_preview_per_bucket(
         orders_collection, cs, ce, granularity=gran, loc_match=loc_match)

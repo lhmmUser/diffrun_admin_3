@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -66,7 +66,26 @@ export default function Home() {
   const [metric, setMetric] = useState<Metric>("orders");
 
   // NEW: country state (India default)
-  const [country, setCountry] = useState<CountryCode>("IN");
+  const [countries, setCountries] = useState<CountryCode[]>(["IN"]);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setCountryOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const weekAgoISO = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
@@ -93,7 +112,7 @@ export default function Home() {
     }
     // default to all printers; front-end can be extended to pass 'printer' from UI
     params.append("printer", "all");
-    params.append("loc", country);
+    countries.forEach(c => params.append("loc", c));
     return `${baseUrl}/stats/ship-status?${params.toString()}`;
   };
   // --- end shipment state ---
@@ -106,7 +125,7 @@ export default function Home() {
   };
 
 
-  const exclusions = ["TEST", "COLLAB", "REJECTED",  "TINA"];
+  const exclusions = ["TEST", "COLLAB", "REJECTED", "TINA"];
 
   // NEW: helper to build URLs and always include `loc`
   const withParams = (path: string, params: Record<string, string | number | undefined>) => {
@@ -115,7 +134,7 @@ export default function Home() {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null) qs.append(k, String(v));
     });
-    qs.set("loc", country); // critical: pass selected country
+    countries.forEach(c => qs.append("loc", c)); // critical: pass selected country
     url.search = qs.toString();
     return url.toString();
   };
@@ -135,7 +154,7 @@ export default function Home() {
     }
 
     // country
-    params.append("loc", country);
+    countries.forEach(c => params.append("loc", c));
 
     return `/api/stats/orders?${params.toString()}`;
   };
@@ -152,7 +171,7 @@ export default function Home() {
     }
 
     // country
-    params.append("loc", country);
+    countries.forEach(c => params.append("loc", c));
 
     return `${baseUrl}/api/stats/preview-vs-orders?${params.toString()}`;
   };
@@ -169,7 +188,7 @@ export default function Home() {
     }
 
     // country
-    params.append("loc", country);
+    countries.forEach(c => params.append("loc", c));
 
     return `/api/stats/revenue?${params.toString()}`;
   };
@@ -195,7 +214,7 @@ export default function Home() {
       .then(setStats)
       .catch((e) => setError(String(e)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, range, startDate, endDate, canFetch, country]);
+  }, [baseUrl, range, startDate, endDate, canFetch, countries]);
 
   // Fetch: Jobs & Conversion (robust to either response shape)
   useEffect(() => {
@@ -249,7 +268,7 @@ export default function Home() {
       })
       .catch((e) => setJobsError(String(e)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, range, startDate, endDate, canFetch, country]);
+  }, [baseUrl, range, startDate, endDate, canFetch, countries]);
 
   // NEW: Fetch Revenue
   useEffect(() => {
@@ -261,13 +280,13 @@ export default function Home() {
       .then((data) => setRevenueStats(data as RevenueStatsResponse))
       .catch((e) => setRevenueError(String(e)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, range, startDate, endDate, canFetch, country]);
+  }, [baseUrl, range, startDate, endDate, canFetch, countries]);
 
   // --- Fetch shipment status table (NEW) ---
   useEffect(() => {
     if (!canFetch) return;
 
-    if (country !== "IN_ONLY") {
+    if (!countries.includes("IN_ONLY")) {
       // clear any old data and stop loading
       setShipRows([]);
       setShipActivities([]);
@@ -313,7 +332,7 @@ export default function Home() {
         setShipError(String(err));
       })
       .finally(() => setShipLoading(false));
-  }, [baseUrl, range, startDate, endDate, canFetch, country]);
+  }, [baseUrl, range, startDate, endDate, canFetch, countries]);
   // --- end fetch shipment table ---
 
 
@@ -639,20 +658,46 @@ export default function Home() {
         )}
 
         {/* Country dropdown */}
-        <div className="ml-0 md:ml-2">
+        {/* Country dropdown */}
+        <div ref={dropdownRef} className="relative ml-0 md:ml-2">
           <label className="block text-sm text-slate-600 mb-1">Country</label>
-          <select
-            value={country}
-            onChange={(e) => setCountry(e.target.value as CountryCode)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-            aria-label="Select Country"
+
+          <button
+            type="button"
+            onClick={() => setCountryOpen(!countryOpen)}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm w-48 text-left"
           >
-            {COUNTRY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            {
+              countries.length === 0
+                ? "Select Country"
+                : countries
+                  .map(c => COUNTRY_OPTIONS.find(o => o.value === c)?.label || c)
+                  .join(", ")
+            }
+          </button>
+
+          {countryOpen && (
+            <div className="absolute z-20 mt-1 w-56 bg-white border border-slate-300 rounded-lg shadow p-2 max-h-60 overflow-y-auto">
+
+              {COUNTRY_OPTIONS.map((c) => (
+                <label key={c.value} className="flex items-center gap-2 py-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={countries.includes(c.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setCountries([...countries, c.value]);
+                      } else {
+                        setCountries(countries.filter(x => x !== c.value));
+                      }
+                    }}
+                  />
+                  {c.label}
+                </label>
+              ))}
+
+            </div>
+          )}
         </div>
       </div>
 
@@ -712,7 +757,7 @@ export default function Home() {
           <div className="h-48 rounded-xl bg-slate-100 animate-pulse" />
         ) : (
           <ReactApexChart
-            key={`${metric}-${range}-${country}-${activeLabels.length}-${customApplied ? "applied" : "pending"}`}
+
             options={chartOptions as any}
             series={activeSeries as any}
             type="line"
