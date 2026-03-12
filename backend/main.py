@@ -390,6 +390,9 @@ class OrderStatusUpdatePayload(BaseModel):
     order_status: str
     order_status_remarks: str
 
+class GoogleReviewReceivedRequest(BaseModel):
+    order_ids: List[str]
+
 
 from fastapi import Header
 
@@ -7839,6 +7842,27 @@ async def unlock_order(
     return {
         "order_id": order_id,
         "locked": False,
+    }
+
+@app.post("/api/orders/google-review-received")
+def mark_google_review_received(payload: GoogleReviewReceivedRequest):
+
+    if not payload.order_ids:
+        raise HTTPException(status_code=400, detail="No order IDs provided")
+
+    result = orders_collection.update_many(
+        {"order_id": {"$in": payload.order_ids}},
+        {
+            "$set": {
+                "google_review_received": True,
+                "google_review_marked_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "updated_count": result.modified_count
     }
 
 @app.get("/api")

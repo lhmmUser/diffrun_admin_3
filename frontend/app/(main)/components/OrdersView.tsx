@@ -299,7 +299,7 @@ export default function OrdersView({
         `${baseUrl}/api/orders_api/${encodeURIComponent(orderIdInUrl)}`,
         {
           method: "PATCH",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
@@ -639,10 +639,10 @@ export default function OrdersView({
             step: "queued",
           }))
         );
-        
+
         const response = await fetch(`${baseUrl}/api/orders/approve-printing`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -1084,9 +1084,10 @@ export default function OrdersView({
           const token = await window.Clerk.session.getToken();
           let res = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json",
+            headers: {
+              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`
-             },
+            },
             body: JSON.stringify({
               order_ids: selectedOrderIds,
               print_sent_by: adminEmail,
@@ -1105,8 +1106,10 @@ export default function OrdersView({
             );
             res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json", 
-                Authorization: `Bearer ${token}` },
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
               body: JSON.stringify({
                 order_ids: selectedOrderIds,
                 print_sent_by: adminEmail,
@@ -1162,9 +1165,10 @@ export default function OrdersView({
             `${baseUrl}/api/shiprocket/create-from-orders`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json",
+              headers: {
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
-               },
+              },
               body: JSON.stringify(srPayload),
             }
           );
@@ -1359,6 +1363,40 @@ export default function OrdersView({
         console.error("[FEEDBACK] Error sending feedback email:", err);
         alert("❌ Something went wrong while sending the email.");
       }
+    } else if (action === "google_review_received") {
+      try {
+        const orderIds = Array.from(selectedOrders);
+
+        const token = await window.Clerk.session.getToken();
+
+        const res = await fetch(`${baseUrl}/api/orders/google-review-received`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            order_ids: orderIds
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        alert(`✅ Google review marked for ${data.updated_count} orders`);
+
+        setSelectedOrders(new Set());
+
+        await fetchOrders();
+
+      } catch (err) {
+        console.error("[GOOGLE_REVIEW] Failed:", err);
+        alert("❌ Failed to mark Google review received");
+      }
     } else if (action === "unapprove") {
       try {
         const selectedJobIds = Array.from(selectedOrders)
@@ -1369,7 +1407,7 @@ export default function OrdersView({
         const token = await window.Clerk.session.getToken();
         const response = await fetch(`${baseUrl}/api/orders/unapprove`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
@@ -1417,7 +1455,7 @@ export default function OrdersView({
               )}`,
               {
                 method: "POST",
-                headers: { 
+                headers: {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${token}`
                 },
@@ -1465,7 +1503,7 @@ export default function OrdersView({
         const token = await window.Clerk.session.getToken();
         const res = await fetch(`${baseUrl}/api/orders/lock`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
@@ -1502,7 +1540,7 @@ export default function OrdersView({
       try {
         const res = await fetch(`${baseUrl}/api/orders/unlock`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
@@ -1717,7 +1755,7 @@ export default function OrdersView({
         >
           Reject
         </button>
-
+        {/*
         <button
           onClick={() => handleAction("finalise")}
           disabled={selectedOrders.size === 0 || hasApprovedOrders()}
@@ -1744,7 +1782,17 @@ export default function OrdersView({
         >
           Request Feedback
         </button>
-
+        */}
+        <button
+          onClick={() => handleAction("google_review_received")}
+          disabled={selectedOrders.size === 0}
+          className={`px-4 py-2 rounded text-sm font-medium transition ${selectedOrders.size === 0
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-purple-600 text-white hover:bg-purple-700"
+            }`}
+        >
+          Google Review
+        </button>
         <button
           onClick={() => handleAction("unapprove")}
           disabled={
