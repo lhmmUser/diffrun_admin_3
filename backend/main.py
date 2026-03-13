@@ -4172,7 +4172,7 @@ async def approve_printing(payload: BulkPrintRequest, background_tasks: Backgrou
                     "state": order.get("shipping_address", {}).get("province", ""),
                     "country": country_code,
                     "email": order.get("email", ""),
-                    "phone": order.get("shipping_address", {}).get("phone", "") if country_code == "IN" else order.get("phone_number", "")
+                    "phone": order.get("shipping_address", {}).get("phone", "")
                 }],
                 "items": [{
                     "reference": reference,
