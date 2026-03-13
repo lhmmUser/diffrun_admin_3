@@ -42,6 +42,7 @@ type RawOrder = {
   locked?: boolean;
   locked_by?: string;
   unlock_by?: string;
+  google_review_received?: boolean;
 };
 
 type Order = {
@@ -71,6 +72,7 @@ type Order = {
   printer: string;
   locked: boolean;
   print_sent_by?: string;
+  gReviewReceived: string;
 };
 
 type PrinterResponse = {
@@ -418,6 +420,7 @@ export default function OrdersView({
         printSentBy: order.print_sent_by || "",
         printer: (order.printer ?? "") as string,
         locked: !!order.locked,
+        gReviewReceived: order.google_review_received ? "Yes" : "-",
       }));
 
       setOrders(transformed);
@@ -738,6 +741,7 @@ export default function OrdersView({
             quantity: order.quantity || 1,
             printer: (order.printer ?? "") as string,
             locked: !!order.locked,
+            gReviewReceived: order.google_review_received ? "Yes" : "-",
           };
         });
 
@@ -1032,6 +1036,7 @@ export default function OrdersView({
             quantity: order.quantity || 1,
             printer: (order.printer ?? "") as string,
             locked: !!order.locked,
+            gReviewReceived: order.google_review_received ? "Yes" : "-",
           };
         });
 
@@ -1301,6 +1306,7 @@ export default function OrdersView({
             quantity: order.quantity || 1,
             printer: (order.printer ?? "") as string,
             locked: !!order.locked,
+            gReviewReceived: order.google_review_received ? "Yes" : "-",
           };
         });
 
@@ -2009,6 +2015,7 @@ export default function OrdersView({
                 "Shipping Status",
                 "Discount Code",
                 "Feedback Email",
+                "GRR",
               ].map((heading, i) => (
                 <th key={i} className="p-3 whitespace-nowrap">
                   {heading}
@@ -2198,6 +2205,9 @@ export default function OrdersView({
                   >
                     {order.feedback_email ? "Sent" : "-"}
                   </span>
+                </td>
+                <td className="px-2 text-xs">
+                  {order.gReviewReceived}
                 </td>
               </tr>
             ))}

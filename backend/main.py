@@ -2379,6 +2379,7 @@ def get_orders(
         "locked_by": 1,
         "unlock_by": 1,
         "print_sent_by": 1,
+        "google_review_received": 1,
     }
 
     cursor = orders_collection.find(query, projection).sort(
@@ -2415,6 +2416,7 @@ def get_orders(
             "locked_by": doc.get("locked_by", ""),
             "unlock_by": doc.get("unlock_by", ""),
             "print_sent_by": doc.get("print_sent_by", ""),
+            "google_review_received": bool(doc.get("google_review_received", False)),
 
         })
 
